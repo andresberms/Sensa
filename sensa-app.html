@@ -2,8 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <title>Sensa Panetteria</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sensa">
+  <meta name="theme-color" content="#34522A">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -15,32 +19,36 @@
   <style>
     :root { --cream:#F5F6EF; --pistachio:#DAE38E; --forest:#34522A; --olive:#818A6D; --cotton:#FFD2D8; --rose:#DC9FAB; }
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{background:var(--cream);font-family:'Instrument Sans',-apple-system,sans-serif;color:#1A1A1A;}
+    body{background:#F2F3EC;font-family:'Instrument Sans',-apple-system,sans-serif;color:#1A1A1A;}
     h1,h2,h3,.serif{font-family:'Instrument Serif',Georgia,serif;}
     /* ── Sidebar ── */
     .sidebar{background:var(--forest);width:228px;flex-shrink:0;height:100vh;display:flex;flex-direction:column;padding:24px 14px;}
     .sidebar-logo{font-family:'Instrument Serif',serif;font-size:36px;font-style:italic;color:var(--pistachio);line-height:1;letter-spacing:-.5px;}
     .sidebar-sub{font-size:8.5px;letter-spacing:4px;text-transform:uppercase;color:rgba(218,227,142,.45);margin-top:3px;}
     .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:rgba(245,246,239,.6);font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s;margin:1px 0;}
-    .nav-item:hover{background:rgba(255,255,255,.1);color:var(--cream);}
-    .nav-item.active{background:var(--pistachio);color:var(--forest);font-weight:700;}
+    .nav-item:hover{background:rgba(255,255,255,.08);color:var(--cream);}
+    .nav-item.active{background:rgba(218,227,142,.25);color:var(--pistachio);font-weight:700;}
     /* ── Cards ── */
-    .card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(52,82,42,.1),0 1px 2px rgba(0,0,0,.04);}
+    .card{background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);}
     /* ── Forms ── */
-    input,select,textarea{border:1.5px solid #E2E8D8;border-radius:9px;padding:9px 12px;width:100%;outline:none;font-size:14px;font-family:'Instrument Sans',sans-serif;background:#fff;color:#1A1A1A;transition:border-color .15s;}
-    input:focus,select:focus,textarea:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(52,82,42,.08);}
+    input,select,textarea{border:1.5px solid #E0E8D4;border-radius:10px;padding:10px 13px;width:100%;outline:none;font-size:14px;font-family:'Instrument Sans',sans-serif;background:#fff;color:#1A1A1A;transition:border-color .15s,box-shadow .15s;}
+    input:focus,select:focus,textarea:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(52,82,42,.1);}
     label{font-size:11px;font-weight:700;color:var(--olive);display:block;margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase;}
     /* ── Buttons ── */
-    .btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;font-weight:600;font-size:13.5px;font-family:'Instrument Sans',sans-serif;cursor:pointer;transition:all .15s;border:none;white-space:nowrap;}
-    .btn-p{background:var(--forest);color:#fff;padding:9px 20px;}
-    .btn-p:hover{background:#2a3f21;transform:translateY(-1px);box-shadow:0 3px 10px rgba(52,82,42,.25);}
-    .btn-s{background:#fff;color:var(--forest);border:1.5px solid #C8D8B8;padding:8px 16px;}
+    .btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;font-weight:600;font-size:13.5px;font-family:'Instrument Sans',sans-serif;cursor:pointer;transition:all .12s;border:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+    .btn-p{background:var(--forest);color:#fff;padding:10px 20px;}
+    .btn-p:hover{background:#2d4724;}
+    .btn-p:active{background:#243d1c;transform:scale(.98);}
+    .btn-s{background:#fff;color:var(--forest);border:1.5px solid #C8D8B8;padding:9px 16px;}
     .btn-s:hover{background:var(--cream);}
-    .btn-g{background:transparent;color:var(--olive);padding:7px 10px;}
-    .btn-g:hover{background:var(--cream);color:var(--forest);}
-    .btn-d{background:#FFF1F2;color:#BE123C;border:1.5px solid #FECDD3;padding:8px 16px;}
+    .btn-s:active{background:#E8EDDE;transform:scale(.98);}
+    .btn-g{background:transparent;color:var(--olive);padding:7px 10px;border-radius:9px;}
+    .btn-g:hover{background:#F0F2EA;color:var(--forest);}
+    .btn-g:active{background:#E4E8DA;transform:scale(.95);}
+    .btn-d{background:#FFF1F2;color:#BE123C;border:1.5px solid #FECDD3;padding:9px 16px;}
     .btn-d:hover{background:#FFE4E6;}
-    .btn-sm{padding:5px 10px!important;font-size:12px!important;border-radius:7px!important;}
+    .btn-d:active{transform:scale(.98);}
+    .btn-sm{padding:6px 10px!important;font-size:12px!important;border-radius:8px!important;min-width:34px;justify-content:center;}
     .btn:disabled{opacity:.4;cursor:not-allowed;}
     /* ── Badges ── */
     .badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
@@ -55,10 +63,11 @@
     th{text-align:left;padding:10px 16px;font-size:10.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.07em;border-bottom:1.5px solid #EEF0E8;font-family:'Instrument Sans',sans-serif;}
     td{padding:12px 16px;font-size:13.5px;border-bottom:1px solid #F4F5EE;color:#1A1A1A;}
     tr:last-child td{border-bottom:none;}
-    tr:hover td{background:#FAFBF7;}
+    tr:hover td{background:#F7F9F3;}
     /* ── Modals ── */
     .modal-bg{background:rgba(0,0,0,.45);backdrop-filter:blur(4px);position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;}
     .modal-box{background:#fff;border-radius:18px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.22);}
+    .modal-handle{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.15);margin:10px auto 0;flex-shrink:0;}
     .modal-head{background:var(--forest);border-radius:17px 17px 0 0;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
     .field{margin-bottom:16px;}
     /* ── Layout responsivo ── */
@@ -72,8 +81,13 @@
     @media(max-width:960px){
       .sb-desktop{display:none!important;}
       .mob-bar{display:flex!important;}
+      .bottom-nav{display:flex!important;}
       .modal-bg{align-items:flex-end;padding:0;}
       .modal-box{border-radius:18px 18px 0 0;max-height:92vh;margin:0;}
+      .modal-box::before{content:'';display:block;width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.12);margin:10px auto 0;flex-shrink:0;}
+      /* Prevent Safari iOS from zooming on input focus */
+      input,select,textarea{font-size:16px!important;}
+      label{font-size:11px!important;}
     }
     @media(max-width:680px){
       .pp{padding:16px 14px!important;}
@@ -90,6 +104,19 @@
     .ham-btn{display:flex;flex-direction:column;justify-content:center;gap:5px;width:38px;height:38px;background:rgba(255,255,255,.1);border:none;border-radius:10px;cursor:pointer;padding:9px 8px;flex-shrink:0;transition:background .15s;}
     .ham-btn:hover,.ham-btn:active{background:rgba(255,255,255,.2);}
     .ham-btn span{display:block;width:100%;height:2px;background:var(--pistachio);border-radius:2px;transition:all .2s;}
+    /* ── Bottom nav ── */
+    .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,.06);z-index:40;padding-bottom:env(safe-area-inset-bottom,0px);}
+    .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px 7px;gap:4px;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;min-height:54px;position:relative;transition:opacity .1s;}
+    .bnav-dot{position:absolute;top:6px;width:4px;height:4px;border-radius:50%;background:var(--forest);opacity:0;transition:opacity .2s;}
+    .bnav-icon{display:flex;align-items:center;justify-content:center;height:26px;transition:transform .15s,color .15s;color:var(--olive);}
+    .bnav-label{font-size:10px;font-weight:500;color:var(--olive);letter-spacing:.01em;font-family:'Instrument Sans',sans-serif;transition:color .2s,font-weight .2s;}
+    .bnav-item.active .bnav-dot{opacity:1;}
+    .bnav-item.active .bnav-icon{color:var(--forest);transform:scale(1.05);}
+    .bnav-item.active .bnav-label{color:var(--forest);font-weight:700;}
+    .bnav-item:active{opacity:.6;}
+    /* ── Back button mobile ── */
+    .back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1.5px solid #C8D8B8;background:#fff;color:var(--forest);font-weight:600;font-size:13.5px;cursor:pointer;font-family:'Instrument Sans',sans-serif;margin-bottom:16px;-webkit-tap-highlight-color:transparent;}
+    .back-btn:active{background:var(--cream);}
     @media print{body>*{display:none!important;}#pa{display:block!important;}}
     #pa{display:none;}
     ::-webkit-scrollbar{width:5px;height:5px;}
@@ -117,15 +144,15 @@ const UNIDADES = ['kg','g','lt','ml','pz','taza','cucharada','cucharadita','sobr
 const ESTADOS = ['Cotización','Confirmado','En proceso','Listo','Entregado','Cancelado'];
 const BADGE_E = {'Cotización':'bc','Confirmado':'bl','En proceso':'bp','Listo':'bg','Entregado':'bg','Cancelado':'brd'};
 const NAV = [
-  {id:'home',label:'Inicio',icon:'🏠'},
-  {id:'ing',label:'Ingredientes',icon:'🌾'},
-  {id:'rec',label:'Recetas',icon:'📋'},
-  {id:'calc',label:'Calculadora',icon:'🧮'},
-  {id:'cli',label:'Clientes',icon:'👥'},
-  {id:'ped',label:'Pedidos',icon:'📦'},
-  {id:'cal',label:'Calendario',icon:'📅'},
-  {id:'rep',label:'Reportes',icon:'📊'},
-  {id:'cfg',label:'Configuración',icon:'⚙️'},
+  {id:'home',label:'Inicio',icon:'home'},
+  {id:'ing',label:'Ingredientes',icon:'layers'},
+  {id:'rec',label:'Recetas',icon:'book'},
+  {id:'calc',label:'Calculadora',icon:'calc'},
+  {id:'cli',label:'Clientes',icon:'users'},
+  {id:'ped',label:'Pedidos',icon:'package'},
+  {id:'cal',label:'Calendario',icon:'calendar'},
+  {id:'rep',label:'Reportes',icon:'chart'},
+  {id:'cfg',label:'Configuración',icon:'settings'},
 ];
 const DEF = {ing:[],rec:[],prod:[],cli:[],ped:[],cfg:{nombre:'Sensa Panetteria',moneda:'CRC',sym:'₡',dir:'',tel:''}};
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -144,6 +171,39 @@ function loadFB(){try{const s=localStorage.getItem(LSF);return s?JSON.parse(s):n
 function recipeCost(r,ings){return(r.ing||[]).reduce((t,ri)=>{const i=ings.find(x=>x.id===ri.id);return i?t+(i.price/(i.qty||1))*(ri.qty||0):t;},0);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+
+// ── ICONS ──────────────────────────────────────────────────────────────────
+const ICONS={
+  home:'M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8~~M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  layers:'M12 2 2 7l10 5 10-5-10-5z~~M2 17l10 5 10-5~~M2 12l10 5 10-5',
+  book:'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z~~M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
+  calc:'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z~~M8 7h8~~M8 11h8~~M8 15h4',
+  users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2~~M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8z~~M22 21v-2a4 4 0 0 0-3-3.87~~M16 3.13a4 4 0 0 1 0 7.75',
+  package:'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z~~M3.27 6.96L12 12.01l8.73-5.05~~M12 22.08V12',
+  calendar:'M8 2v4~~M16 2v4~~M3 10h18~~M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z',
+  chart:'M18 20V10~~M12 20V4~~M6 20v-6',
+  settings:'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z~~M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  edit:'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7~~M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z',
+  trash:'M3 6h18~~M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6~~M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
+  eye:'M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z~~M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  print:'M6 9V2h12v7~~M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2~~M6 14h12v8H6z',
+  scale:'M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z~~M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z~~M7 21h10~~M12 3v18~~M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2',
+  search:'M10 3a7 7 0 1 0 0 14A7 7 0 0 0 10 3z~~M21 21l-4.35-4.35',
+  plus:'M12 5v14~~M5 12h14',
+  check:'M20 6L9 17l-5-5',
+  x:'M18 6L6 18~~M6 6l12 12',
+  alert:'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z~~M12 9v4~~M12 17h.01',
+  cloud:'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z',
+  menu:'M3 12h18~~M3 6h18~~M3 18h18',
+  left:'M19 12H5~~M12 19l-7-7 7-7',
+  bread:'M17.5 5A5.5 5.5 0 0 1 17.5 16H7a5 5 0 0 1 0-10h.21A5.5 5.5 0 0 1 17.5 5z~~M2.5 11.5a2.5 2.5 0 0 0 0 5H7',
+};
+function Icon({n,s=18,c='currentColor',sw=1.75}){
+  const d=ICONS[n];if(!d)return null;
+  return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" style={{display:'block',flexShrink:0}}>
+    {d.split('~~').map((p,i)=><path key={i} d={p}/>)}
+  </svg>;
+}
 // ── TOAST ──────────────────────────────────────────────────────────────────
 let _toast=null;
 function toast(msg,type='ok'){if(_toast)_toast({id:uid(),msg,type});}
@@ -158,7 +218,7 @@ function Toaster(){
     <div style={{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',zIndex:200,display:'flex',flexDirection:'column',gap:8,pointerEvents:'none',alignItems:'center'}}>
       {items.map(t=>(
         <div key={t.id} className="toast" style={{padding:'11px 16px',borderRadius:10,fontWeight:600,fontSize:13.5,background:t.type==='err'?'#BE123C':'var(--forest)',color:'#fff',boxShadow:'0 4px 20px rgba(0,0,0,.25)',display:'flex',alignItems:'center',gap:8}}>
-          <span>{t.type==='err'?'⚠️':'✓'}</span>{t.msg}
+          {t.type==='err'?<Icon n='alert' s={15} c='#fff'/>:<Icon n='check' s={15} c='#fff'/>}{t.msg}
         </div>
       ))}
     </div>
@@ -173,7 +233,7 @@ class ErrorBoundary extends React.Component{
   render(){
     if(this.state.err)return(
       <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--cream)',gap:16,padding:24,textAlign:'center'}}>
-        <div style={{fontSize:48}}>🍞</div>
+        <div style={{width:60,height:60,borderRadius:"50%",background:"#F0F7E8",display:"flex",alignItems:"center",justifyContent:"center"}}><Icon n="bread" s={26} c="var(--forest)"/></div>
         <h2 style={{fontFamily:'Instrument Serif,serif',color:'var(--forest)',fontSize:24}}>Algo salió mal</h2>
         <p style={{color:'var(--olive)',fontSize:13.5,maxWidth:320}}>{this.state.err.message}</p>
         <button className="btn btn-p" onClick={()=>this.setState({err:null})}>Reintentar</button>
@@ -223,14 +283,14 @@ function FI({label,...p}){return <F label={label}><input {...p}/></F>;}
 function FS({label,opts,...p}){return <F label={label}><select {...p}>{opts.map(o=><option key={o.v??o} value={o.v??o}>{o.l??o}</option>)}</select></F>;}
 function FT({label,...p}){return <F label={label}><textarea rows={3} style={{resize:'none'}} {...p}/></F>;}
 function CDel({what,onOk,onNo}){
-  return <Modal title="Eliminar" onClose={onNo}><p style={{color:'#555',marginBottom:20}}>¿Eliminar <strong>{what}</strong>? No se puede deshacer.</p><div style={{display:'flex',gap:12,justifyContent:'flex-end'}}><Btn v='s' onClick={onNo}>Cancelar</Btn><Btn v='d' onClick={onOk}>🗑️ Eliminar</Btn></div></Modal>;
+  return <Modal title="Eliminar" onClose={onNo}><p style={{color:'#555',marginBottom:20}}>¿Eliminar <strong>{what}</strong>? No se puede deshacer.</p><div style={{display:'flex',gap:12,justifyContent:'flex-end'}}><Btn v='s' onClick={onNo}>Cancelar</Btn><Btn v='d' onClick={onOk}><Icon n='trash' s={14}/> Eliminar</Btn></div></Modal>;
 }
 function CConfirm({title,body,okLabel='Confirmar',danger,onOk,onNo}){
   return <Modal title={title} onClose={onNo}><p style={{color:'#555',marginBottom:20}}>{body}</p><div style={{display:'flex',gap:12,justifyContent:'flex-end'}}><Btn v='s' onClick={onNo}>Cancelar</Btn><Btn v={danger?'d':'p'} onClick={onOk}>{okLabel}</Btn></div></Modal>;
 }
 function Empty({icon,title,sub,action}){
   return <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'80px 20px',textAlign:'center'}}>
-    <div style={{width:64,height:64,borderRadius:'50%',background:'var(--cream)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,marginBottom:16}}>{icon}</div>
+    <div style={{width:64,height:64,borderRadius:'50%',background:'#EAF0E4',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>{icon}</div>
     <h3 className="serif" style={{fontSize:20,color:'var(--forest)',marginBottom:6}}>{title}</h3>
     <p style={{fontSize:13.5,color:'var(--olive)',maxWidth:280,marginBottom:24}}>{sub}</p>
     {action}
@@ -247,7 +307,7 @@ function PH({title,sub,action}){
 }
 function SB({val,set,ph}){
   return <div className="card" style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',marginBottom:16}}>
-    <span style={{color:'#ccc'}}>🔍</span>
+    <Icon n='search' s={16} c='#bbb'/>
     <input value={val} onChange={e=>set(e.target.value)} placeholder={ph||'Buscar...'} style={{border:'none',boxShadow:'none',padding:0,background:'transparent',fontSize:14,flex:1}}/>
   </div>;
 }
@@ -334,10 +394,10 @@ function Setup({onDone,onSkip}){
       <p style={{fontSize:13,color:'var(--olive)',marginBottom:16}}>Usá el mismo nombre en todos tus dispositivos para que se sincronicen.</p>
       <FI label="ID del espacio de trabajo" value={wsId} onChange={e=>setWsId(e.target.value.toLowerCase().replace(/\s+/g,'-'))} placeholder="sensa"/>
       <div className="card" style={{background:'#F0F7E8',padding:12,marginBottom:16}}>
-        <p style={{fontSize:12,color:'var(--forest)'}}>💡 Cualquier dispositivo con el mismo Firebase config + este ID verá los mismos datos.</p>
+        <p style={{fontSize:12,color:'var(--forest)'}}>Cualquier dispositivo con el mismo Firebase config + este ID verá los mismos datos.</p>
       </div>
       {err&&<p style={{color:'#BE123C',fontSize:13,marginBottom:12}}>{err}</p>}
-      <div style={{display:'flex',gap:12}}><Btn v='s' onClick={()=>setStep(2)}>← Atrás</Btn><Btn onClick={connect} disabled={!wsId}>🔗 Conectar y sincronizar</Btn></div>
+      <div style={{display:'flex',gap:12}}><Btn v='s' onClick={()=>setStep(2)}>← Atrás</Btn><Btn onClick={connect} disabled={!wsId}>Conectar y sincronizar</Btn></div>
     </>},
   ];
 
@@ -380,19 +440,18 @@ function Home({D,go}){
           <h1 style={{fontFamily:'Instrument Serif,serif',fontSize:32,fontStyle:'italic',color:'var(--forest)',fontWeight:400}}>
             {h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'}
           </h1>
-          <span style={{fontSize:26}}>🍞</span>
         </div>
         <p style={{fontSize:13,color:'var(--olive)',marginTop:4}}>{new Date().toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'})}</p>
       </div>
       <div className="g2" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12,marginBottom:28}}>
         {[
-          {l:'Pedidos activos',v:activos.length,i:'📦',bg:'linear-gradient(135deg,#F0F7E8,#E8F0DC)',c:'var(--forest)',p:'ped'},
-          {l:'Ingresos del mes',v:fmt(ing,sym),i:'💰',bg:'linear-gradient(135deg,#FAFBF4,#F2F4E8)',c:'var(--forest)',p:'rep'},
-          {l:'Próximas entregas',v:prox.length,i:'📅',bg:'linear-gradient(135deg,var(--cotton),#FFC8D0)',c:'#9D174D',p:'cal'},
-          {l:'Cobros pendientes',v:cobros.length,i:'⚠️',bg:'linear-gradient(135deg,#FFF1F2,#FFE4E6)',c:'#BE123C',p:'ped'},
+          {l:'Pedidos activos',v:activos.length,i:'package',bg:'linear-gradient(135deg,#F0F7E8,#E8F0DC)',c:'var(--forest)',p:'ped'},
+          {l:'Ingresos del mes',v:fmt(ing,sym),i:'chart',bg:'linear-gradient(135deg,#FAFBF4,#F2F4E8)',c:'var(--forest)',p:'rep'},
+          {l:'Próximas entregas',v:prox.length,i:'calendar',bg:'linear-gradient(135deg,var(--cotton),#FFC8D0)',c:'#9D174D',p:'cal'},
+          {l:'Cobros pendientes',v:cobros.length,i:'alert',bg:'linear-gradient(135deg,#FFF1F2,#FFE4E6)',c:'#BE123C',p:'ped'},
         ].map(s=>(
           <div key={s.l} onClick={()=>go(s.p)} className="card" style={{padding:20,cursor:'pointer',background:s.bg,transition:'transform .15s,box-shadow .15s'}} onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,.12)';}} onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='';}}>
-            <div style={{fontSize:24,marginBottom:10}}>{s.i}</div>
+            <div style={{marginBottom:10}}><Icon n={s.i} s={22} c={s.c} sw={1.5}/></div>
             <div style={{fontFamily:'Instrument Serif,serif',fontSize:30,color:s.c,lineHeight:1}}>{s.v}</div>
             <div style={{fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:s.c,opacity:.65,marginTop:6}}>{s.l}</div>
           </div>
@@ -441,7 +500,7 @@ function Ing({D,ops}){
     <div className="pp" style={{maxWidth:960,margin:'0 auto'}}>
       <PH title="Ingredientes" sub={`${D.ing.length} registrados`} action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>
       <SB val={q} set={setQ} ph="Buscar ingrediente o proveedor..."/>
-      {list.length===0?<Empty icon="🌾" title="Sin ingredientes" sub="Agregá tus harinas, levaduras, sal y más." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
+      {list.length===0?<Empty icon={<Icon n="layers" s={26} c="var(--forest)"/>} title="Sin ingredientes" sub="Agregá tus harinas, levaduras, sal y más." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
         <div className="card tbl" style={{overflow:'hidden'}}>
           <table>
             <thead><tr><th>Ingrediente</th><th>Precio</th><th>Presentación</th><th>Costo/unidad</th><th>Proveedor</th><th></th></tr></thead>
@@ -452,7 +511,7 @@ function Ing({D,ops}){
                 <td style={{color:'var(--olive)',fontSize:13}}>{i.qty} {i.unit}</td>
                 <td style={{fontFamily:'monospace',fontSize:12}}>{fmt(i.price/(i.qty||1),sym)}/{i.unit}</td>
                 <td style={{color:'var(--olive)',fontSize:13}}>{i.prov||'—'}</td>
-                <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setModal(i)}>✏️</Btn><Btn v='g' sm onClick={()=>setDel(i)}>🗑️</Btn></div></td>
+                <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setModal(i)}><Icon n='edit' s={14}/></Btn><Btn v='g' sm onClick={()=>setDel(i)}><Icon n='trash' s={14}/></Btn></div></td>
               </tr>
             ))}</tbody>
           </table>
@@ -501,7 +560,7 @@ function Rec({D,ops}){
     <div className="pp" style={{maxWidth:960,margin:'0 auto'}}>
       <PH title="Recetas" sub={`${D.rec.length} recetas`} action={<Btn onClick={()=>setModal({})}>+ Nueva receta</Btn>}/>
       <SB val={q} set={setQ} ph="Buscar receta o categoría..."/>
-      {list.length===0?<Empty icon="📋" title="Sin recetas" sub="Cargá tus masas, rellenos y coberturas." action={<Btn onClick={()=>setModal({})}>+ Crear receta</Btn>}/>:
+      {list.length===0?<Empty icon={<Icon n="book" s={26} c="var(--forest)"/>} title="Sin recetas" sub="Cargá tus masas, rellenos y coberturas." action={<Btn onClick={()=>setModal({})}>+ Crear receta</Btn>}/>:
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
           {list.map(r=>{
             const costo=recipeCost(r,D.ing);
@@ -510,9 +569,9 @@ function Rec({D,ops}){
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
                   <div><div style={{fontWeight:600,fontSize:15}}>{r.nombre}</div>{r.cat&&<span className="badge bg" style={{marginTop:4,fontSize:11}}>{r.cat}</span>}</div>
                   <div style={{display:'flex',gap:4}}>
-                    <Btn v='g' sm onClick={()=>setBas(r)} title="Báscula">⚖️</Btn>
-                    <Btn v='g' sm onClick={()=>setModal(r)}>✏️</Btn>
-                    <Btn v='g' sm onClick={()=>setDel(r)}>🗑️</Btn>
+                    <Btn v='g' sm onClick={()=>setBas(r)} title='Báscula'><Icon n='scale' s={14}/></Btn>
+                    <Btn v='g' sm onClick={()=>setModal(r)}><Icon n='edit' s={14}/></Btn>
+                    <Btn v='g' sm onClick={()=>setDel(r)}><Icon n='trash' s={14}/></Btn>
                   </div>
                 </div>
                 <p style={{fontSize:12.5,color:'var(--olive)',marginBottom:12}}>{r.rend} {r.rend_u||'pz'} · {(r.ing||[]).length} ingredientes</p>
@@ -602,7 +661,7 @@ function BascModal({rec,ings,sym,onClose}){
     document.getElementById('pa').innerHTML=html;window.print();
   }
   return(
-    <Modal title={`⚖️ Báscula — ${rec.nombre}`} onClose={onClose}>
+    <Modal title={`Báscula — ${rec.nombre}`} onClose={onClose}>
       <div style={{display:'flex',gap:8,marginBottom:16}}>
         {['tandas','unidades'].map(m=>(
           <button key={m} onClick={()=>setModo(m)} style={{flex:1,padding:'9px 0',borderRadius:10,border:`1.5px solid ${modo===m?'var(--forest)':'#E2E8D8'}`,background:modo===m?'var(--forest)':'white',color:modo===m?'white':'var(--olive)',fontWeight:600,fontSize:13.5,cursor:'pointer',fontFamily:'Instrument Sans,sans-serif'}}>
@@ -623,7 +682,7 @@ function BascModal({rec,ings,sym,onClose}){
         </div>
       </div>
       <div style={{display:'flex',gap:12,justifyContent:'flex-end'}}>
-        <Btn v='s' onClick={print}>🖨️ Imprimir</Btn>
+        <Btn v='s' onClick={print}><Icon n='print' s={14}/> Imprimir</Btn>
         <Btn onClick={onClose}>Cerrar</Btn>
       </div>
     </Modal>
@@ -642,7 +701,7 @@ function Calc({D,ops}){
     <div className="pp" style={{maxWidth:960,margin:'0 auto'}}>
       <PH title="Calculadora de Precios" sub={`${D.prod.length} productos`} action={<Btn onClick={()=>setModal({})}>+ Nuevo producto</Btn>}/>
       <SB val={q} set={setQ} ph="Buscar producto..."/>
-      {list.length===0?<Empty icon="🧮" title="Sin productos" sub="Calculá el precio de venta de tus panes." action={<Btn onClick={()=>setModal({})}>+ Crear producto</Btn>}/>:
+      {list.length===0?<Empty icon={<Icon n="calc" s={26} c="var(--forest)"/>} title="Sin productos" sub="Calculá el precio de venta de tus panes." action={<Btn onClick={()=>setModal({})}>+ Crear producto</Btn>}/>:
         <div className="card tbl" style={{overflow:'hidden'}}>
           <table>
             <thead><tr><th>Producto</th><th>SKU</th><th>Costo prod.</th><th>Precio venta</th><th>Margen</th><th></th></tr></thead>
@@ -654,7 +713,7 @@ function Calc({D,ops}){
                 <td>{fmt(p.cost||0,sym)}</td>
                 <td style={{fontWeight:700,color:'var(--forest)'}}>{fmt(p.price||0,sym)}</td>
                 <td>{m!=null?<span className={`badge ${m>0?'bg':'brd'}`}>{m}%</span>:'—'}</td>
-                <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setModal(p)}>✏️</Btn><Btn v='g' sm onClick={()=>setDel(p)}>🗑️</Btn></div></td>
+                <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setModal(p)}><Icon n='edit' s={14}/></Btn><Btn v='g' sm onClick={()=>setDel(p)}><Icon n='trash' s={14}/></Btn></div></td>
               </tr>;
             })}</tbody>
           </table>
@@ -756,12 +815,12 @@ function Cli({D,ops}){
     const tot=peds.filter(p=>p.estado==='Entregado').reduce((s,p)=>s+(p.total||0),0);
     return(
       <div className="pp" style={{maxWidth:800,margin:'0 auto'}}>
-        <Btn v='g' onClick={()=>setSel(null)}>← Volver</Btn>
+        <button className="back-btn" onClick={()=>setSel(null)}><Icon n="left" s={15}/> Volver</button>
         <div className="card" style={{padding:24,margin:'16px 0 24px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
             <div>
               <h1 className="serif" style={{fontSize:24,color:'var(--forest)'}}>{c.nombre}</h1>
-              {c.tel&&<p style={{fontSize:13,color:'var(--olive)',marginTop:6}}>📱 {c.tel}</p>}
+              {c.tel&&<p style={{fontSize:13,color:'var(--olive)',marginTop:6,display:'flex',alignItems:'center',gap:6}}><Icon n='users' s={13}/>{c.tel}</p>}
               {c.email&&<p style={{fontSize:13,color:'var(--olive)'}}>✉️ {c.email}</p>}
               {c.notes&&<p style={{fontSize:13,color:'var(--olive)',fontStyle:'italic',marginTop:8}}>{c.notes}</p>}
             </div>
@@ -788,7 +847,7 @@ function Cli({D,ops}){
     <div className="pp" style={{maxWidth:960,margin:'0 auto'}}>
       <PH title="Clientes" sub={`${D.cli.length} clientes`} action={<Btn onClick={()=>setModal({})}>+ Nuevo cliente</Btn>}/>
       <SB val={q} set={setQ} ph="Buscar por nombre o teléfono..."/>
-      {list.length===0?<Empty icon="👥" title="Sin clientes" sub="Agregá tus clientes para llevar su historial." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
+      {list.length===0?<Empty icon={<Icon n="users" s={26} c="var(--forest)"/>} title="Sin clientes" sub="Agregá tus clientes para llevar su historial." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
         <div className="card tbl" style={{overflow:'hidden'}}>
           <table><thead><tr><th>Cliente</th><th>Teléfono</th><th>Pedidos</th><th>Total gastado</th><th></th></tr></thead>
           <tbody>{list.map(c=>{
@@ -799,7 +858,7 @@ function Cli({D,ops}){
               <td style={{color:'var(--olive)'}}>{c.tel||'—'}</td>
               <td>{peds.length}</td>
               <td style={{fontWeight:600}}>{fmt(tot,sym)}</td>
-              <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setSel(c.id)}>👁️</Btn><Btn v='g' sm onClick={()=>setModal(c)}>✏️</Btn><Btn v='g' sm onClick={()=>setDel(c)}>🗑️</Btn></div></td>
+              <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setSel(c.id)}><Icon n='eye' s={14}/></Btn><Btn v='g' sm onClick={()=>setModal(c)}><Icon n='edit' s={14}/></Btn><Btn v='g' sm onClick={()=>setDel(c)}><Icon n='trash' s={14}/></Btn></div></td>
             </tr>;
           })}</tbody></table>
         </div>
@@ -853,7 +912,7 @@ function Ped({D,ops}){
         {['Todos',...ESTADOS].map(e=><button key={e} onClick={()=>setEst(e)} style={{padding:'5px 14px',borderRadius:20,border:`1.5px solid ${est===e?'var(--forest)':'#E2E8D8'}`,background:est===e?'var(--forest)':'white',color:est===e?'white':'var(--olive)',fontWeight:600,fontSize:12.5,cursor:'pointer',fontFamily:'Instrument Sans,sans-serif'}}>{e}</button>)}
       </div>
       <SB val={q} set={setQ} ph="Buscar por cliente o descripción..."/>
-      {list.length===0?<Empty icon="📦" title="Sin pedidos" sub="Registrá tus pedidos para controlar entregas y cobros." action={<Btn onClick={()=>setModal({})}>+ Registrar</Btn>}/>:
+      {list.length===0?<Empty icon={<Icon n="package" s={26} c="var(--forest)"/>} title="Sin pedidos" sub="Registrá tus pedidos para controlar entregas y cobros." action={<Btn onClick={()=>setModal({})}>+ Registrar</Btn>}/>:
         <div className="card tbl" style={{overflow:'hidden'}}>
           <table><thead><tr><th>Cliente</th><th>Descripción</th><th>Entrega</th><th>Total</th><th>Saldo</th><th>Estado</th><th></th></tr></thead>
           <tbody>{list.map(p=>{
@@ -865,7 +924,7 @@ function Ped({D,ops}){
               <td style={{fontWeight:700}}>{fmt(p.total||0,sym)}</td>
               <td style={{fontWeight:saldo>0.01?700:400,color:saldo>0.01?'#BE123C':'#ccc'}}>{saldo>0.01?fmt(saldo,sym):'✓'}</td>
               <td><span className={`badge ${BADGE_E[p.estado]||'bc'}`}>{p.estado}</span></td>
-              <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>nota(p)} title="Nota">🖨️</Btn><Btn v='g' sm onClick={()=>setModal(p)}>✏️</Btn><Btn v='g' sm onClick={()=>setDel(p)}>🗑️</Btn></div></td>
+              <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>nota(p)} title='Nota'><Icon n='print' s={14}/></Btn><Btn v='g' sm onClick={()=>setModal(p)}><Icon n='edit' s={14}/></Btn><Btn v='g' sm onClick={()=>setDel(p)}><Icon n='trash' s={14}/></Btn></div></td>
             </tr>;
           })}</tbody></table>
         </div>
@@ -991,9 +1050,9 @@ function Rep({D}){
         <div><label>Hasta</label><input type="date" value={hasta} onChange={e=>setHasta(e.target.value)} style={{width:170}}/></div>
       </div>
       <div className="g2" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12,marginBottom:28}}>
-        {[{l:'Ventas totales',v:fmt(total,sym),i:'💰',bg:'#F0F7E8',c:'var(--forest)'},{l:'Pedidos entregados',v:peds.length,i:'📦',bg:'#EEF6FF',c:'#1E3A5F'},{l:'Ticket promedio',v:fmt(ticket,sym),i:'🧾',bg:'var(--cotton)',c:'#9D174D'},{l:'Clientes atendidos',v:nclients,i:'👥',bg:'#F5F3FF',c:'#4C1D95'}].map(s=>(
+        {[{l:'Ventas totales',v:fmt(total,sym),i:'chart',bg:'#F0F7E8',c:'var(--forest)'},{l:'Pedidos entregados',v:peds.length,i:'package',bg:'#EEF6FF',c:'#1E3A5F'},{l:'Ticket promedio',v:fmt(ticket,sym),i:'calc',bg:'var(--cotton)',c:'#9D174D'},{l:'Clientes atendidos',v:nclients,i:'users',bg:'#F5F3FF',c:'#4C1D95'}].map(s=>(
           <div key={s.l} className="card" style={{padding:18,background:s.bg}}>
-            <div style={{fontSize:26,marginBottom:8}}>{s.i}</div>
+            <div style={{marginBottom:8}}><Icon n={s.i} s={20} c={s.c} sw={1.5}/></div>
             <div className="serif" style={{fontSize:24,fontWeight:700,color:s.c}}>{s.v}</div>
             <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'.05em',color:s.c,opacity:.7,marginTop:4}}>{s.l}</div>
           </div>
@@ -1016,7 +1075,7 @@ function Rep({D}){
         <table><thead><tr><th>Cliente</th><th>Pedidos</th><th>Total</th></tr></thead>
         <tbody>{topCli.map(({c,n,t})=><tr key={c.id}><td style={{fontWeight:600}}>{c.nombre}</td><td>{n}</td><td style={{fontWeight:700,color:'var(--forest)'}}>{fmt(t,sym)}</td></tr>)}</tbody></table>
       </div>}
-      {peds.length===0&&<Empty icon="📊" title="Sin datos en este período" sub="Ajustá el rango o registrá pedidos como 'Entregado'."/>}
+      {peds.length===0&&<Empty icon={<Icon n="chart" s={26} c="var(--forest)"/>} title="Sin datos en este período" sub="Ajustá el rango o registrá pedidos como 'Entregado'."/>}
     </div>
   );
 }
@@ -1080,7 +1139,7 @@ function Cfg({D,ops,synced}){
               <div style={{width:8,height:8,borderRadius:'50%',background:'#ccc'}}/>
               <span style={{fontSize:13.5,color:'var(--olive)'}}>Solo este dispositivo</span>
             </div>
-            <Btn onClick={()=>setShowSetup(true)}>☁️ Activar sincronización gratuita</Btn>
+            <Btn onClick={()=>setShowSetup(true)}><Icon n='cloud' s={14}/> Activar sincronización gratuita</Btn>
           </div>
         )}
       </div>
@@ -1088,15 +1147,43 @@ function Cfg({D,ops,synced}){
         <h2 className="serif" style={{fontSize:18,color:'var(--forest)',marginBottom:6}}>Respaldo de datos</h2>
         <p style={{fontSize:13,color:'var(--olive)',marginBottom:16}}>Exportá o importá todos tus datos.</p>
         <div style={{display:'flex',gap:12}}>
-          <Btn v='s' onClick={exportD}>📤 Exportar</Btn>
+          <Btn v='s' onClick={exportD}>Exportar datos</Btn>
           <label style={{display:'inline-flex',alignItems:'center',gap:6,borderRadius:9,fontWeight:600,fontSize:13.5,cursor:'pointer',padding:'8px 16px',background:'white',color:'var(--forest)',border:'1.5px solid #C8D8B8',fontFamily:'Instrument Sans,sans-serif'}}>
-            📥 Importar<input type="file" accept=".json" onChange={importD} style={{display:'none'}}/>
+            Importar datos<input type="file" accept=".json" onChange={importD} style={{display:'none'}}/>
           </label>
         </div>
       </div>
     </div>
     {confirm&&<CConfirm {...confirm} onNo={()=>setConfirm(null)}/>}
     </>
+  );
+}
+
+// ── BOTTOM NAV ────────────────────────────────────────────────────────────
+const BNAV=[
+  {id:'home',label:'Inicio',icon:'home'},
+  {id:'ped',label:'Pedidos',icon:'package'},
+  {id:'cli',label:'Clientes',icon:'users'},
+  {id:'rec',label:'Recetas',icon:'book'},
+];
+const BNAV_MAIN=BNAV.map(n=>n.id);
+function BottomNav({page,go,onMore}){
+  const isMore=!BNAV_MAIN.includes(page);
+  return(
+    <div className="bottom-nav">
+      {BNAV.map(n=>(
+        <button key={n.id} className={`bnav-item${page===n.id?' active':''}`} onClick={()=>go(n.id)}>
+          <span className="bnav-dot"/>
+          <span className="bnav-icon"><Icon n={n.icon} s={22}/></span>
+          <span className="bnav-label">{n.label}</span>
+        </button>
+      ))}
+      <button className={`bnav-item${isMore?' active':''}`} onClick={onMore}>
+        <span className="bnav-dot"/>
+        <span className="bnav-icon"><Icon n='menu' s={22}/></span>
+        <span className="bnav-label">Más</span>
+      </button>
+    </div>
   );
 }
 
@@ -1113,7 +1200,7 @@ function Sidebar({page,go,neg,synced,onClose}){
       </div>
       <nav style={{flex:1}}>
         {NAV.map(n=><div key={n.id} className={`nav-item ${page===n.id?'active':''}`} onClick={()=>{go(n.id);onClose&&onClose();}}>
-          <span style={{fontSize:15,width:20,textAlign:'center',opacity:.9}}>{n.icon}</span>
+          <span style={{width:20,display:'flex',justifyContent:'center',alignItems:'center'}}><Icon n={n.icon} s={16} c='currentColor' sw={1.75}/></span>
           <span>{n.label}</span>
         </div>)}
       </nav>
@@ -1207,7 +1294,7 @@ function App(){
       {/* Main */}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
         {/* Mobile header */}
-        <div className="mob-bar" style={{alignItems:'center',gap:12,padding:'10px 14px',background:'var(--forest)',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
+        <div className="mob-bar" style={{alignItems:'center',gap:12,paddingTop:'calc(10px + env(safe-area-inset-top, 0px))',paddingBottom:'10px',paddingLeft:14,paddingRight:14,background:'var(--forest)',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
           <button className="ham-btn" onClick={()=>setMob(true)} aria-label="Abrir menú">
             <span/><span/><span/>
           </button>
@@ -1220,10 +1307,13 @@ function App(){
             <div style={{width:7,height:7,borderRadius:'50%',background:synced?'var(--pistachio)':'rgba(255,255,255,.2)',boxShadow:synced?'0 0 5px rgba(218,227,142,.5)':'none'}}/>
           </div>
         </div>
-        <div style={{flex:1,overflowY:'auto',background:'var(--cream)'}}>
-          {views[page]||views.home}
+        <div style={{flex:1,overflowY:'auto',background:'var(--cream)',paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
+          <div style={{paddingBottom:68}}>
+            {views[page]||views.home}
+          </div>
         </div>
       </div>
+      <BottomNav page={page} go={setPage} onMore={()=>setMob(true)}/>
       <Toaster/>
     </div>
   );
