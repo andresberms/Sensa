@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Sensa Panetteria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    :root { --cream:#F5F6EF; --pistachio:#DAE38E; --forest:#34522A; --olive:#818A6D; --cotton:#FFD2D8; --rose:#DC9FAB; }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--cream);font-family:'Instrument Sans',-apple-system,sans-serif;color:#1A1A1A;}
+    h1,h2,h3,.serif{font-family:'Instrument Serif',Georgia,serif;}
+    /* ── Sidebar ── */
+    .sidebar{background:var(--forest);width:228px;flex-shrink:0;height:100vh;display:flex;flex-direction:column;padding:24px 14px;}
+    .sidebar-logo{font-family:'Instrument Serif',serif;font-size:36px;font-style:italic;color:var(--pistachio);line-height:1;letter-spacing:-.5px;}
+    .sidebar-sub{font-size:8.5px;letter-spacing:4px;text-transform:uppercase;color:rgba(218,227,142,.45);margin-top:3px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:rgba(245,246,239,.6);font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s;margin:1px 0;}
+    .nav-item:hover{background:rgba(255,255,255,.1);color:var(--cream);}
+    .nav-item.active{background:var(--pistachio);color:var(--forest);font-weight:700;}
+    /* ── Cards ── */
+    .card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(52,82,42,.1),0 1px 2px rgba(0,0,0,.04);}
+    /* ── Forms ── */
+    input,select,textarea{border:1.5px solid #E2E8D8;border-radius:9px;padding:9px 12px;width:100%;outline:none;font-size:14px;font-family:'Instrument Sans',sans-serif;background:#fff;color:#1A1A1A;transition:border-color .15s;}
+    input:focus,select:focus,textarea:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(52,82,42,.08);}
+    label{font-size:11px;font-weight:700;color:var(--olive);display:block;margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase;}
+    /* ── Buttons ── */
+    .btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;font-weight:600;font-size:13.5px;font-family:'Instrument Sans',sans-serif;cursor:pointer;transition:all .15s;border:none;white-space:nowrap;}
+    .btn-p{background:var(--forest);color:#fff;padding:9px 20px;}
+    .btn-p:hover{background:#2a3f21;transform:translateY(-1px);box-shadow:0 3px 10px rgba(52,82,42,.25);}
+    .btn-s{background:#fff;color:var(--forest);border:1.5px solid #C8D8B8;padding:8px 16px;}
+    .btn-s:hover{background:var(--cream);}
+    .btn-g{background:transparent;color:var(--olive);padding:7px 10px;}
+    .btn-g:hover{background:var(--cream);color:var(--forest);}
+    .btn-d{background:#FFF1F2;color:#BE123C;border:1.5px solid #FECDD3;padding:8px 16px;}
+    .btn-d:hover{background:#FFE4E6;}
+    .btn-sm{padding:5px 10px!important;font-size:12px!important;border-radius:7px!important;}
+    .btn:disabled{opacity:.4;cursor:not-allowed;}
+    /* ── Badges ── */
+    .badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;}
+    .bg{background:var(--pistachio);color:var(--forest);}
+    .bp{background:var(--cotton);color:#9D174D;}
+    .br{background:var(--rose);color:#7D1D3F;}
+    .bc{background:var(--cream);color:var(--olive);border:1px solid #DDE8CC;}
+    .bl{background:#DBEAFE;color:#1E3A5F;}
+    .brd{background:#FFE4E6;color:#BE123C;}
+    /* ── Tables ── */
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;padding:10px 16px;font-size:10.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.07em;border-bottom:1.5px solid #EEF0E8;font-family:'Instrument Sans',sans-serif;}
+    td{padding:12px 16px;font-size:13.5px;border-bottom:1px solid #F4F5EE;color:#1A1A1A;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:#FAFBF7;}
+    /* ── Modals ── */
+    .modal-bg{background:rgba(0,0,0,.45);backdrop-filter:blur(4px);position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;}
+    .modal-box{background:#fff;border-radius:18px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.22);}
+    .modal-head{background:var(--forest);border-radius:17px 17px 0 0;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
+    .field{margin-bottom:16px;}
+    /* ── Layout responsivo ── */
+    .sb-desktop{display:flex;flex-shrink:0;}
+    .mob-bar{display:none;}
+    .pp{padding:28px 24px;}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+    .tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .tbl table{min-width:480px;}
+    @media(max-width:960px){
+      .sb-desktop{display:none!important;}
+      .mob-bar{display:flex!important;}
+      .modal-bg{align-items:flex-end;padding:0;}
+      .modal-box{border-radius:18px 18px 0 0;max-height:92vh;margin:0;}
+    }
+    @media(max-width:680px){
+      .pp{padding:16px 14px!important;}
+      .g2{grid-template-columns:1fr!important;}
+      .g3{grid-template-columns:1fr 1fr!important;}
+      .modal-g2{grid-template-columns:1fr!important;}
+    }
+    @media(max-width:420px){
+      .g3{grid-template-columns:1fr!important;}
+    }
+    @keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .toast{animation:toastIn .2s ease;}
+    /* ── Hamburger button ── */
+    .ham-btn{display:flex;flex-direction:column;justify-content:center;gap:5px;width:38px;height:38px;background:rgba(255,255,255,.1);border:none;border-radius:10px;cursor:pointer;padding:9px 8px;flex-shrink:0;transition:background .15s;}
+    .ham-btn:hover,.ham-btn:active{background:rgba(255,255,255,.2);}
+    .ham-btn span{display:block;width:100%;height:2px;background:var(--pistachio);border-radius:2px;transition:all .2s;}
+    @media print{body>*{display:none!important;}#pa{display:block!important;}}
+    #pa{display:none;}
+    ::-webkit-scrollbar{width:5px;height:5px;}
+    ::-webkit-scrollbar-thumb{background:#C8D8B8;border-radius:3px;}
+  </style>
+</head>
+<body>
+
+<!-- Loading state shown until React mounts -->
+<div id="root">
+  <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;background:var(--cream)">
+    <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:40px;color:var(--forest)">sensa</div>
+    <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--olive)">Cargando…</div>
+  </div>
+</div>
+<div id="pa"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
+const LSK = 'sensa_v3', LSF = 'sensa_fb';
+const MONEDAS = [{value:'CRC',label:'Colones (₡)',sym:'₡'},{value:'USD',label:'Dólares ($)',sym:'$'}];
+const UNIDADES = ['kg','g','lt','ml','pz','taza','cucharada','cucharadita','sobre','lata','bolsa'];
+const ESTADOS = ['Cotización','Confirmado','En proceso','Listo','Entregado','Cancelado'];
+const BADGE_E = {'Cotización':'bc','Confirmado':'bl','En proceso':'bp','Listo':'bg','Entregado':'bg','Cancelado':'brd'};
+const NAV = [
+  {id:'home',label:'Inicio',icon:'🏠'},
+  {id:'ing',label:'Ingredientes',icon:'🌾'},
+  {id:'rec',label:'Recetas',icon:'📋'},
+  {id:'calc',label:'Calculadora',icon:'🧮'},
+  {id:'cli',label:'Clientes',icon:'👥'},
+  {id:'ped',label:'Pedidos',icon:'📦'},
+  {id:'cal',label:'Calendario',icon:'📅'},
+  {id:'rep',label:'Reportes',icon:'📊'},
+  {id:'cfg',label:'Configuración',icon:'⚙️'},
+];
+const DEF = {ing:[],rec:[],prod:[],cli:[],ped:[],cfg:{nombre:'Sensa Panetteria',moneda:'CRC',sym:'₡',dir:'',tel:''}};
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function today(){return new Date().toISOString().split('T')[0];}
+function fmt(n,sym='₡'){
+  const v=+n||0;
+  return sym==='₡'?'₡'+Math.round(v).toLocaleString('es-CR'):'$'+v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+}
+function fdate(s){if(!s)return'—';return new Date(s+'T12:00').toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'});}
+function loadLS(){try{const s=localStorage.getItem(LSK);return s?{...DEF,...JSON.parse(s)}:DEF;}catch{return DEF;}}
+function saveLS(d){localStorage.setItem(LSK,JSON.stringify(d));}
+function loadFB(){try{const s=localStorage.getItem(LSF);return s?JSON.parse(s):null;}catch{return null;}}
+function recipeCost(r,ings){return(r.ing||[]).reduce((t,ri)=>{const i=ings.find(x=>x.id===ri.id);return i?t+(i.price/(i.qty||1))*(ri.qty||0):t;},0);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+let _toast=null;
+function toast(msg,type='ok'){if(_toast)_toast({id:uid(),msg,type});}
+function Toaster(){
+  const[items,setItems]=useState([]);
+  useEffect(()=>{
+    _toast=t=>{setItems(p=>[...p,t]);setTimeout(()=>setItems(p=>p.filter(x=>x.id!==t.id)),3000);};
+    return()=>{_toast=null;};
+  },[]);
+  if(!items.length)return null;
+  return(
+    <div style={{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',zIndex:200,display:'flex',flexDirection:'column',gap:8,pointerEvents:'none',alignItems:'center'}}>
+      {items.map(t=>(
+        <div key={t.id} className="toast" style={{padding:'11px 16px',borderRadius:10,fontWeight:600,fontSize:13.5,background:t.type==='err'?'#BE123C':'var(--forest)',color:'#fff',boxShadow:'0 4px 20px rgba(0,0,0,.25)',display:'flex',alignItems:'center',gap:8}}>
+          <span>{t.type==='err'?'⚠️':'✓'}</span>{t.msg}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── ERROR BOUNDARY ─────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component{
+  state={err:null};
+  static getDerivedStateFromError(e){return{err:e};}
+  componentDidCatch(e,info){console.error('[Sensa]',e,info);}
+  render(){
+    if(this.state.err)return(
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--cream)',gap:16,padding:24,textAlign:'center'}}>
+        <div style={{fontSize:48}}>🍞</div>
+        <h2 style={{fontFamily:'Instrument Serif,serif',color:'var(--forest)',fontSize:24}}>Algo salió mal</h2>
+        <p style={{color:'var(--olive)',fontSize:13.5,maxWidth:320}}>{this.state.err.message}</p>
+        <button className="btn btn-p" onClick={()=>this.setState({err:null})}>Reintentar</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
+// ── FIREBASE ───────────────────────────────────────────────────────────────
+let _db=null,_ws=null;
+function col(c){return _db.collection('ws').doc(_ws).collection(c);}
+function fbUpsert(c,doc){const{id,...d}=doc;return col(c).doc(id).set(d);}
+function fbDel(c,id){return col(c).doc(id).delete();}
+function fbCfg(d){return col('config').doc('main').set(d);}
+function initFB(config,ws){
+  try{
+    if(firebase.apps.length)firebase.apps.forEach(a=>a.delete());
+    firebase.initializeApp(config);
+    _db=firebase.firestore();
+    _ws=ws;
+    _db.enablePersistence().catch(()=>{});
+    return true;
+  }catch(e){console.error(e);return false;}
+}
+
+// ── SMALL UI ───────────────────────────────────────────────────────────────
+function Btn({onClick,children,v='p',sm,disabled,cls=''}){
+  return <button onClick={onClick} disabled={disabled} className={`btn btn-${v}${sm?' btn-sm':''} ${cls}`}>{children}</button>;
+}
+function Modal({title,onClose,children,wide}){
+  useEffect(()=>{const h=e=>e.key==='Escape'&&onClose();window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h);},[onClose]);
+  return(
+    <div className="modal-bg" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal-box" style={{maxWidth:wide?740:580}}>
+        <div className="modal-head">
+          <h2 style={{fontFamily:'Instrument Serif,serif',fontSize:19,fontStyle:'italic',color:'var(--pistachio)',fontWeight:400}}>{title}</h2>
+          <button onClick={onClose} style={{width:28,height:28,borderRadius:'50%',border:'none',background:'rgba(255,255,255,.12)',cursor:'pointer',fontSize:13,color:'rgba(218,227,142,.7)',display:'flex',alignItems:'center',justifyContent:'center',transition:'background .15s'}} onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,.22)'} onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,.12)'}>✕</button>
+        </div>
+        <div style={{padding:'22px 24px'}}>{children}</div>
+      </div>
+    </div>
+  );
+}
+function F({label,children}){return <div className="field"><label>{label}</label>{children}</div>;}
+function FI({label,...p}){return <F label={label}><input {...p}/></F>;}
+function FS({label,opts,...p}){return <F label={label}><select {...p}>{opts.map(o=><option key={o.v??o} value={o.v??o}>{o.l??o}</option>)}</select></F>;}
+function FT({label,...p}){return <F label={label}><textarea rows={3} style={{resize:'none'}} {...p}/></F>;}
+function CDel({what,onOk,onNo}){
+  return <Modal title="Eliminar" onClose={onNo}><p style={{color:'#555',marginBottom:20}}>¿Eliminar <strong>{what}</strong>? No se puede deshacer.</p><div style={{display:'flex',gap:12,justifyContent:'flex-end'}}><Btn v='s' onClick={onNo}>Cancelar</Btn><Btn v='d' onClick={onOk}>🗑️ Eliminar</Btn></div></Modal>;
+}
+function CConfirm({title,body,okLabel='Confirmar',danger,onOk,onNo}){
+  return <Modal title={title} onClose={onNo}><p style={{color:'#555',marginBottom:20}}>{body}</p><div style={{display:'flex',gap:12,justifyContent:'flex-end'}}><Btn v='s' onClick={onNo}>Cancelar</Btn><Btn v={danger?'d':'p'} onClick={onOk}>{okLabel}</Btn></div></Modal>;
+}
+function Empty({icon,title,sub,action}){
+  return <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'80px 20px',textAlign:'center'}}>
+    <div style={{width:64,height:64,borderRadius:'50%',background:'var(--cream)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,marginBottom:16}}>{icon}</div>
+    <h3 className="serif" style={{fontSize:20,color:'var(--forest)',marginBottom:6}}>{title}</h3>
+    <p style={{fontSize:13.5,color:'var(--olive)',maxWidth:280,marginBottom:24}}>{sub}</p>
+    {action}
+  </div>;
+}
+function PH({title,sub,action}){
+  return <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:28}}>
+    <div>
+      <h1 style={{fontFamily:'Instrument Serif,serif',fontSize:30,fontStyle:'italic',color:'var(--forest)',fontWeight:400,lineHeight:1.1}}>{title}</h1>
+      {sub&&<p style={{fontSize:13,color:'var(--olive)',marginTop:5}}>{sub}</p>}
+    </div>
+    {action&&<div style={{flexShrink:0,marginLeft:16,marginTop:4}}>{action}</div>}
+  </div>;
+}
+function SB({val,set,ph}){
+  return <div className="card" style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',marginBottom:16}}>
+    <span style={{color:'#ccc'}}>🔍</span>
+    <input value={val} onChange={e=>set(e.target.value)} placeholder={ph||'Buscar...'} style={{border:'none',boxShadow:'none',padding:0,background:'transparent',fontSize:14,flex:1}}/>
+  </div>;
+}
+
+// ── SETUP WIZARD ───────────────────────────────────────────────────────────
+function Setup({onDone,onSkip}){
+  const [step,setStep]=useState(0);
+  const [raw,setRaw]=useState('');
+  const [cfg,setCfg]=useState(null);
+  const [wsId,setWsId]=useState('sensa');
+  const [err,setErr]=useState('');
+
+  function parse(){
+    try{
+      const m=raw.match(/\{[\s\S]*\}/);
+      if(!m)throw new Error();
+      const c=m[0].replace(/([a-zA-Z_]\w*)(\s*:)/g,'"$1"$2').replace(/'/g,'"').replace(/,(\s*[}\]])/g,'$1');
+      const p=JSON.parse(c);
+      if(!p.apiKey||!p.projectId)throw new Error();
+      setCfg(p);setErr('');setStep(3);
+    }catch{setErr('No se pudo leer. Copiá el bloque completo que incluye las llaves { }.');}
+  }
+
+  function connect(){
+    if(!cfg)return;
+    const ok=initFB(cfg,wsId);
+    if(ok){localStorage.setItem(LSF,JSON.stringify({config:cfg,workspaceId:wsId}));onDone();}
+    else setErr('No se pudo conectar. Revisá el config.');
+  }
+
+  const steps=[
+    {title:'Crear proyecto Firebase',body:<>
+      <div className="card" style={{background:'var(--cream)',padding:16,marginBottom:16}}>
+        <p style={{fontSize:13,fontWeight:600,color:'var(--forest)',marginBottom:12}}>Seguí estos pasos (5 min):</p>
+        <ol style={{listStyle:'none',display:'flex',flexDirection:'column',gap:10}}>
+          {[<>Entrá a <a href="https://console.firebase.google.com" target="_blank" style={{color:'var(--forest)',textDecoration:'underline'}}>console.firebase.google.com</a></>,
+            <>Clic en <strong>"Agregar proyecto"</strong></>,
+            <>Nombre: <strong>sensa-panetteria</strong> → Continuar</>,
+            <>Desactivá Google Analytics → <strong>Crear proyecto</strong></>,
+            <>Clic en el ícono <strong>Web ( &lt;/&gt; )</strong></>,
+            <>Nombre: <strong>sensa-app</strong> → Registrar</>,
+          ].map((s,i)=><li key={i} style={{display:'flex',gap:10,fontSize:13}}>
+            <span style={{width:22,height:22,borderRadius:'50%',background:'var(--forest)',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,flexShrink:0}}>{i+1}</span>
+            <span>{s}</span>
+          </li>)}
+        </ol>
+      </div>
+      <Btn onClick={()=>setStep(1)}>Tengo el proyecto →</Btn>
+    </>},
+    {title:'Activar base de datos',body:<>
+      <div className="card" style={{background:'var(--cream)',padding:16,marginBottom:16}}>
+        <ol style={{listStyle:'none',display:'flex',flexDirection:'column',gap:10}}>
+          {[<>En el menú izquierdo → <strong>Firestore Database</strong></>,
+            <>Clic en <strong>"Crear base de datos"</strong></>,
+            <>Elegí <strong>"Modo de prueba"</strong> → Siguiente</>,
+            <>Ubicación <strong>us-central1</strong> → Listo</>,
+          ].map((s,i)=><li key={i} style={{display:'flex',gap:10,fontSize:13}}>
+            <span style={{width:22,height:22,borderRadius:'50%',background:'var(--forest)',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,flexShrink:0}}>{i+1}</span>
+            <span>{s}</span>
+          </li>)}
+        </ol>
+      </div>
+      <div style={{display:'flex',gap:12}}><Btn v='s' onClick={()=>setStep(0)}>← Atrás</Btn><Btn onClick={()=>setStep(2)}>Listo →</Btn></div>
+    </>},
+    {title:'Copiar el código de configuración',body:<>
+      <div className="card" style={{background:'var(--cream)',padding:16,marginBottom:16}}>
+        <ol style={{listStyle:'none',display:'flex',flexDirection:'column',gap:10}}>
+          {[<>Clic en ⚙️ → <strong>Configuración del proyecto</strong></>,
+            <>Bajá a <strong>"Tus apps"</strong> → SDK → <strong>Configuración</strong></>,
+            <>Copiá el bloque <code style={{background:'rgba(0,0,0,.06)',padding:'1px 6px',borderRadius:4}}>const firebaseConfig = {'{ … }'}</code></>,
+          ].map((s,i)=><li key={i} style={{display:'flex',gap:10,fontSize:13}}>
+            <span style={{width:22,height:22,borderRadius:'50%',background:'var(--forest)',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,flexShrink:0}}>{i+1}</span>
+            <span>{s}</span>
+          </li>)}
+        </ol>
+      </div>
+      <F label="Pegá el bloque aquí">
+        <textarea value={raw} onChange={e=>setRaw(e.target.value)} rows={6} placeholder={'const firebaseConfig = {\n  apiKey: "...",\n  projectId: "...",\n  ...\n};'} style={{fontFamily:'monospace',fontSize:12,resize:'none'}}/>
+      </F>
+      {err&&<p style={{color:'#BE123C',fontSize:13,marginBottom:12}}>{err}</p>}
+      <div style={{display:'flex',gap:12}}><Btn v='s' onClick={()=>setStep(1)}>← Atrás</Btn><Btn onClick={parse} disabled={!raw.trim()}>Continuar →</Btn></div>
+    </>},
+    {title:'Nombre de tu espacio',body:<>
+      <p style={{fontSize:13,color:'var(--olive)',marginBottom:16}}>Usá el mismo nombre en todos tus dispositivos para que se sincronicen.</p>
+      <FI label="ID del espacio de trabajo" value={wsId} onChange={e=>setWsId(e.target.value.toLowerCase().replace(/\s+/g,'-'))} placeholder="sensa"/>
+      <div className="card" style={{background:'#F0F7E8',padding:12,marginBottom:16}}>
+        <p style={{fontSize:12,color:'var(--forest)'}}>💡 Cualquier dispositivo con el mismo Firebase config + este ID verá los mismos datos.</p>
+      </div>
+      {err&&<p style={{color:'#BE123C',fontSize:13,marginBottom:12}}>{err}</p>}
+      <div style={{display:'flex',gap:12}}><Btn v='s' onClick={()=>setStep(2)}>← Atrás</Btn><Btn onClick={connect} disabled={!wsId}>🔗 Conectar y sincronizar</Btn></div>
+    </>},
+  ];
+
+  return(
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16,background:'var(--cream)'}}>
+      <div style={{width:'100%',maxWidth:480}}>
+        <div style={{textAlign:'center',marginBottom:32}}>
+          <div className="serif" style={{fontSize:44,fontStyle:'italic',color:'var(--forest)'}}>sensa</div>
+          <div style={{fontSize:10,letterSpacing:4,textTransform:'uppercase',color:'var(--olive)'}}>Panetteria</div>
+        </div>
+        <div className="card" style={{padding:24}}>
+          <div style={{display:'flex',gap:4,marginBottom:24}}>
+            {steps.map((_,i)=><div key={i} style={{height:4,flex:1,borderRadius:2,background:i<=step?'var(--forest)':'#E2E8D8',transition:'background .3s'}}/>)}
+          </div>
+          <h2 className="serif" style={{fontSize:20,color:'var(--forest)',marginBottom:16}}>{steps[step].title}</h2>
+          {steps[step].body}
+          <button onClick={onSkip} style={{marginTop:16,fontSize:12,color:'var(--olive)',background:'none',border:'none',cursor:'pointer',textDecoration:'underline',display:'block',width:'100%',textAlign:'center'}}>
+            Usar sin sincronización (solo este dispositivo)
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────
+function Home({D,go}){
+  const {sym}=D.cfg;
+  const hoy=today(),mes=hoy.slice(0,7);
+  const activos=D.ped.filter(p=>!['Entregado','Cancelado'].includes(p.estado));
+  const ing=D.ped.filter(p=>p.estado==='Entregado'&&(p.fecha||'').startsWith(mes)).reduce((s,p)=>s+(p.total||0),0);
+  const cobros=D.ped.filter(p=>['Listo','Entregado'].includes(p.estado)&&(p.total||0)-(p.adelanto||0)>0.01);
+  const prox=D.ped.filter(p=>p.fecha_e>=hoy&&p.estado!=='Cancelado').sort((a,b)=>a.fecha_e.localeCompare(b.fecha_e)).slice(0,5);
+  const cl=id=>D.cli.find(c=>c.id===id);
+  const h=new Date().getHours();
+  return(
+    <div className="pp" style={{maxWidth:900,margin:'0 auto'}}>
+      <div style={{marginBottom:28}}>
+        <div style={{display:'flex',alignItems:'baseline',gap:10}}>
+          <h1 style={{fontFamily:'Instrument Serif,serif',fontSize:32,fontStyle:'italic',color:'var(--forest)',fontWeight:400}}>
+            {h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'}
+          </h1>
+          <span style={{fontSize:26}}>🍞</span>
+        </div>
+        <p style={{fontSize:13,color:'var(--olive)',marginTop:4}}>{new Date().toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'})}</p>
+      </div>
+      <div className="g2" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12,marginBottom:28}}>
+        {[
+          {l:'Pedidos activos',v:activos.length,i:'📦',bg:'linear-gradient(135deg,#F0F7E8,#E8F0DC)',c:'var(--forest)',p:'ped'},
+          {l:'Ingresos del mes',v:fmt(ing,sym),i:'💰',bg:'linear-gradient(135deg,#FAFBF4,#F2F4E8)',c:'var(--forest)',p:'rep'},
+          {l:'Próximas entregas',v:prox.length,i:'📅',bg:'linear-gradient(135deg,var(--cotton),#FFC8D0)',c:'#9D174D',p:'cal'},
+          {l:'Cobros pendientes',v:cobros.length,i:'⚠️',bg:'linear-gradient(135deg,#FFF1F2,#FFE4E6)',c:'#BE123C',p:'ped'},
+        ].map(s=>(
+          <div key={s.l} onClick={()=>go(s.p)} className="card" style={{padding:20,cursor:'pointer',background:s.bg,transition:'transform .15s,box-shadow .15s'}} onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,.12)';}} onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='';}}>
+            <div style={{fontSize:24,marginBottom:10}}>{s.i}</div>
+            <div style={{fontFamily:'Instrument Serif,serif',fontSize:30,color:s.c,lineHeight:1}}>{s.v}</div>
+            <div style={{fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:s.c,opacity:.65,marginTop:6}}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+      <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,alignItems:'start'}}>
+        <div className="card" style={{padding:20}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+            <h2 style={{fontFamily:'Instrument Serif,serif',fontSize:18,fontStyle:'italic',color:'var(--forest)',fontWeight:400}}>Próximas entregas</h2>
+            <button onClick={()=>go('ped')} style={{fontSize:12,color:'var(--olive)',background:'none',border:'none',cursor:'pointer'}}>Ver todos →</button>
+          </div>
+          {prox.length===0?<p style={{fontSize:13,color:'var(--olive)',textAlign:'center',padding:'20px 0'}}>Sin entregas próximas ✓</p>:
+            prox.map(p=>(
+              <div key={p.id} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',padding:'10px 0',borderBottom:'1px solid #F5F5EE'}}>
+                <div><div style={{fontSize:13.5,fontWeight:600}}>{cl(p.cli_id)?.nombre||'Sin cliente'}</div><div style={{fontSize:12,color:'var(--olive)',marginTop:2}}>{fdate(p.fecha_e)}</div></div>
+                <div style={{textAlign:'right'}}><div style={{fontSize:13.5,fontWeight:700}}>{fmt(p.total||0,sym)}</div><span className={`badge ${BADGE_E[p.estado]||'bc'}`}>{p.estado}</span></div>
+              </div>
+            ))
+          }
+        </div>
+        <div className="card" style={{padding:20}}>
+          <h2 style={{fontFamily:'Instrument Serif,serif',fontSize:18,fontStyle:'italic',color:'var(--forest)',fontWeight:400,marginBottom:16}}>Cobros pendientes</h2>
+          {cobros.length===0?<p style={{fontSize:13,color:'var(--olive)',textAlign:'center',padding:'20px 0'}}>Todo cobrado ✓</p>:
+            cobros.slice(0,5).map(p=>(
+              <div key={p.id} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',padding:'10px 0',borderBottom:'1px solid #F5F5EE'}}>
+                <div><div style={{fontSize:13.5,fontWeight:600}}>{cl(p.cli_id)?.nombre||'Sin cliente'}</div><div style={{fontSize:12,color:'var(--olive)',marginTop:2}}>{fdate(p.fecha_e)}</div></div>
+                <div style={{fontSize:13.5,fontWeight:700,color:'#BE123C'}}>{fmt((p.total||0)-(p.adelanto||0),sym)}</div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── INGREDIENTES ──────────────────────────────────────────────────────────
+function Ing({D,ops}){
+  const [q,setQ]=useState('');
+  const [modal,setModal]=useState(null);
+  const [del,setDel]=useState(null);
+  const {sym}=D.cfg;
+  const list=useMemo(()=>D.ing.filter(i=>`${i.nombre} ${i.prov||''}`.toLowerCase().includes(q.toLowerCase())),[D.ing,q]);
+  const save=d=>{ops.ups('ing',d,modal?.id);setModal(null);toast(modal?.id?'Ingrediente actualizado':'Ingrediente agregado');};
+  return(
+    <div className="pp" style={{maxWidth:960,margin:'0 auto'}}>
+      <PH title="Ingredientes" sub={`${D.ing.length} registrados`} action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>
+      <SB val={q} set={setQ} ph="Buscar ingrediente o proveedor..."/>
+      {list.length===0?<Empty icon="🌾" title="Sin ingredientes" sub="Agregá tus harinas, levaduras, sal y más." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
+        <div className="card tbl" style={{overflow:'hidden'}}>
+          <table>
+            <thead><tr><th>Ingrediente</th><th>Precio</th><th>Presentación</th><th>Costo/unidad</th><th>Proveedor</th><th></th></tr></thead>
+            <tbody>{list.map(i=>(
+              <tr key={i.id}>
+                <td style={{fontWeight:600}}>{i.nombre}</td>
+                <td>{fmt(i.price,sym)}</td>
+                <td style={{color:'var(--olive)',fontSize:13}}>{i.qty} {i.unit}</td>
+                <td style={{fontFamily:'monospace',fontSize:12}}>{fmt(i.price/(i.qty||1),sym)}/{i.unit}</td>
+                <td style={{color:'var(--olive)',fontSize:13}}>{i.prov||'—'}</td>
+                <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setModal(i)}>✏️</Btn><Btn v='g' sm onClick={()=>setDel(i)}>🗑️</Btn></div></td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      }
+      {modal!==null&&<IngModal ing={modal} onSave={save} onClose={()=>setModal(null)} sym={sym}/>}
+      {del&&<CDel what={del.nombre} onOk={()=>{ops.del('ing',del.id);setDel(null);toast('Ingrediente eliminado','err');}} onNo={()=>setDel(null)}/>}
+    </div>
+  );
+}
+function IngModal({ing,onSave,onClose,sym}){
+  const[f,sf]=useState({nombre:'',price:'',qty:'1',unit:'kg',prov:'',notes:'',...ing});
+  const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
+  const cu=f.price&&f.qty?(+f.price/+f.qty):0;
+  return(
+    <Modal title={ing.id?'Editar ingrediente':'Nuevo ingrediente'} onClose={onClose}>
+      <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder="Ej: Harina de trigo"/>
+      <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+        <FI label="Precio de compra" type="number" step="1" value={f.price} onChange={s('price')} placeholder="0"/>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+          <FI label="Cantidad" type="number" step=".001" value={f.qty} onChange={s('qty')} placeholder="1"/>
+          <FS label="Unidad" value={f.unit} onChange={s('unit')} opts={UNIDADES}/>
+        </div>
+      </div>
+      {cu>0&&<div style={{background:'#F0F7E8',borderRadius:9,padding:'8px 12px',marginBottom:16,fontSize:12.5,fontWeight:600,color:'var(--forest)'}}>Costo por {f.unit}: <strong>{fmt(cu,sym)}</strong></div>}
+      <FI label="Proveedor" value={f.prov||''} onChange={s('prov')} placeholder="Nombre del proveedor"/>
+      <FT label="Notas" value={f.notes||''} onChange={s('notes')} placeholder="Observaciones..."/>
+      <div style={{display:'flex',gap:12,justifyContent:'flex-end',marginTop:8}}>
+        <Btn v='s' onClick={onClose}>Cancelar</Btn>
+        <Btn onClick={()=>f.nombre.trim()&&onSave(f)} disabled={!f.nombre.trim()}>Guardar</Btn>
+      </div>
+    </Modal>
+  );
+}
+
+// ── RECETAS ───────────────────────────────────────────────────────────────
+function Rec({D,ops}){
+  const [q,setQ]=useState('');
+  const [modal,setModal]=useState(null);
+  const [del,setDel]=useState(null);
+  const [bas,setBas]=useState(null);
+  const {sym}=D.cfg;
+  const list=useMemo(()=>D.rec.filter(r=>`${r.nombre} ${r.cat||''}`.toLowerCase().includes(q.toLowerCase())),[D.rec,q]);
+  const save=d=>{ops.ups('rec',d,modal?.id);setModal(null);toast(modal?.id?'Receta actualizada':'Receta creada');};
+  return(
+    <div className="pp" style={{maxWidth:960,margin:'0 auto'}}>
+      <PH title="Recetas" sub={`${D.rec.length} recetas`} action={<Btn onClick={()=>setModal({})}>+ Nueva receta</Btn>}/>
+      <SB val={q} set={setQ} ph="Buscar receta o categoría..."/>
+      {list.length===0?<Empty icon="📋" title="Sin recetas" sub="Cargá tus masas, rellenos y coberturas." action={<Btn onClick={()=>setModal({})}>+ Crear receta</Btn>}/>:
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
+          {list.map(r=>{
+            const costo=recipeCost(r,D.ing);
+            return(
+              <div key={r.id} className="card" style={{padding:20}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+                  <div><div style={{fontWeight:600,fontSize:15}}>{r.nombre}</div>{r.cat&&<span className="badge bg" style={{marginTop:4,fontSize:11}}>{r.cat}</span>}</div>
+                  <div style={{display:'flex',gap:4}}>
+                    <Btn v='g' sm onClick={()=>setBas(r)} title="Báscula">⚖️</Btn>
+                    <Btn v='g' sm onClick={()=>setModal(r)}>✏️</Btn>
+                    <Btn v='g' sm onClick={()=>setDel(r)}>🗑️</Btn>
+                  </div>
+                </div>
+                <p style={{fontSize:12.5,color:'var(--olive)',marginBottom:12}}>{r.rend} {r.rend_u||'pz'} · {(r.ing||[]).length} ingredientes</p>
+                <div style={{display:'flex',justifyContent:'space-between',borderTop:'1px solid #F0F0E8',paddingTop:10}}>
+                  <span style={{fontSize:12,color:'var(--olive)'}}>Costo</span>
+                  <span style={{fontWeight:700,color:'var(--forest)'}}>{fmt(costo,sym)}</span>
+                </div>
+                {r.rend>0&&<div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
+                  <span style={{fontSize:12,color:'var(--olive)'}}>Por unidad</span>
+                  <span style={{fontSize:12,color:'var(--olive)'}}>{fmt(costo/r.rend,sym)}</span>
+                </div>}
+              </div>
+            );
+          })}
+        </div>
+      }
+      {modal!==null&&<RecModal rec={modal} ings={D.ing} onSave={save} onClose={()=>setModal(null)} sym={sym}/>}
+      {bas&&<BascModal rec={bas} ings={D.ing} sym={sym} onClose={()=>setBas(null)}/>}
+      {del&&<CDel what={del.nombre} onOk={()=>{ops.del('rec',del.id);setDel(null);toast('Receta eliminada','err');}} onNo={()=>setDel(null)}/>}
+    </div>
+  );
+}
+function RecModal({rec,ings,onSave,onClose,sym}){
+  const[f,sf]=useState({nombre:'',cat:'',rend:'',rend_u:'pz',inst:'',notes:'',ing:[],...rec});
+  const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
+  const[ni,sni]=useState({id:'',qty:''});
+  const add=()=>{if(!ni.id||!ni.qty)return;sf(p=>({...p,ing:[...p.ing,{...ni,key:uid()}]}));sni({id:'',qty:''}); };
+  const costo=f.ing.reduce((t,ri)=>{const i=ings.find(x=>x.id===ri.id);return i?t+(i.price/(i.qty||1))*(ri.qty||0):t;},0);
+  return(
+    <Modal title={rec.id?'Editar receta':'Nueva receta'} onClose={onClose} wide>
+      <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+        <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder="Ej: Pan de centeno"/>
+        <FI label="Categoría" value={f.cat||''} onChange={s('cat')} placeholder="Masa, Relleno..."/>
+      </div>
+      <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+        <FI label="Rendimiento" type="number" value={f.rend||''} onChange={s('rend')} placeholder="12"/>
+        <FS label="Unidad" value={f.rend_u||'pz'} onChange={s('rend_u')} opts={['pz','kg','lt','porción','tanda','barra','caja']}/>
+      </div>
+      <label>Ingredientes</label>
+      {f.ing.length>0&&<div style={{border:'1px solid #EEF0E8',borderRadius:10,overflow:'hidden',marginBottom:8}}>
+        <table>
+          <thead><tr><th>Ingrediente</th><th>Cantidad</th><th>Costo</th><th></th></tr></thead>
+          <tbody>{f.ing.map(ri=>{
+            const ing=ings.find(x=>x.id===ri.id);
+            const c=ing?(ing.price/(ing.qty||1))*(ri.qty||0):0;
+            return <tr key={ri.key||ri.id+ri.qty}>
+              <td>{ing?.nombre||'—'}</td><td>{ri.qty} {ing?.unit||''}</td>
+              <td style={{color:'var(--forest)',fontSize:13}}>{fmt(c,sym)}</td>
+              <td><button onClick={()=>sf(p=>({...p,ing:p.ing.filter(x=>x.key!==ri.key)}))} style={{border:'none',background:'none',cursor:'pointer',color:'#ccc',fontSize:14}} onMouseEnter={e=>e.target.style.color='#e00'} onMouseLeave={e=>e.target.style.color='#ccc'}>✕</button></td>
+            </tr>;
+          })}</tbody>
+        </table>
+      </div>}
+      <div style={{display:'flex',gap:8,marginBottom:16}}>
+        <select value={ni.id} onChange={e=>sni(p=>({...p,id:e.target.value}))} style={{flex:1}}>
+          <option value="">Agregar ingrediente...</option>
+          {ings.map(i=><option key={i.id} value={i.id}>{i.nombre} ({i.unit})</option>)}
+        </select>
+        <input type="number" step=".001" placeholder="Cant." value={ni.qty} onChange={e=>sni(p=>({...p,qty:e.target.value}))} style={{width:80}}/>
+        <Btn onClick={add} disabled={!ni.id||!ni.qty}>+</Btn>
+      </div>
+      {costo>0&&<div style={{background:'#F0F7E8',borderRadius:10,padding:'10px 14px',marginBottom:16,display:'flex',justifyContent:'space-between'}}>
+        <span style={{fontSize:13.5,fontWeight:600,color:'var(--forest)'}}>Costo total ingredientes</span>
+        <span style={{fontWeight:700,color:'var(--forest)'}}>{fmt(costo,sym)}</span>
+      </div>}
+      <FT label="Instrucciones" value={f.inst||''} onChange={s('inst')} placeholder="Pasos de preparación..."/>
+      <FT label="Notas" value={f.notes||''} onChange={s('notes')} placeholder="Trucos, variaciones..."/>
+      <div style={{display:'flex',gap:12,justifyContent:'flex-end',marginTop:8}}>
+        <Btn v='s' onClick={onClose}>Cancelar</Btn>
+        <Btn onClick={()=>f.nombre.trim()&&onSave(f)} disabled={!f.nombre.trim()}>Guardar</Btn>
+      </div>
+    </Modal>
+  );
+}
+function BascModal({rec,ings,sym,onClose}){
+  const[modo,setModo]=useState('tandas');
+  const[cant,setCant]=useState(1);
+  const factor=modo==='tandas'?cant:cant/(rec.rend||1);
+  const items=(rec.ing||[]).map(ri=>{
+    const i=ings.find(x=>x.id===ri.id);
+    const q=ri.qty*factor;
+    return{nombre:i?.nombre||'?',unit:i?.unit||'',q,costo:i?(i.price/(i.qty||1))*ri.qty*factor:0};
+  });
+  const total=items.reduce((s,i)=>s+i.costo,0);
+  function print(){
+    const html=`<div style="font-family:sans-serif;max-width:420px;margin:0 auto;padding:24px"><h2 style="color:#34522A">Lista de compra — ${esc(rec.nombre)}</h2><p style="color:#818A6D">${cant} ${modo==='tandas'?'tanda(s)':(rec.rend_u||'unidades')}</p><table style="width:100%;border-collapse:collapse;margin-top:12px"><tr style="border-bottom:2px solid #eee"><th style="text-align:left;padding:6px 0">Ingrediente</th><th style="text-align:right;padding:6px 0">Cantidad</th></tr>${items.map(i=>`<tr style="border-bottom:1px solid #f5f5f5"><td style="padding:8px 0">${esc(i.nombre)}</td><td style="text-align:right;padding:8px 0"><strong>${i.q%1===0?i.q:i.q.toFixed(3)} ${i.unit}</strong></td></tr>`).join('')}</table><p style="margin-top:16px;font-weight:bold;color:#34522A">Costo estimado: ${fmt(total,sym)}</p></div>`;
+    document.getElementById('pa').innerHTML=html;window.print();
+  }
+  return(
+    <Modal title={`⚖️ Báscula — ${rec.nombre}`} onClose={onClose}>
+      <div style={{display:'flex',gap:8,marginBottom:16}}>
+        {['tandas','unidades'].map(m=>(
+          <button key={m} onClick={()=>setModo(m)} style={{flex:1,padding:'9px 0',borderRadius:10,border:`1.5px solid ${modo===m?'var(--forest)':'#E2E8D8'}`,background:modo===m?'var(--forest)':'white',color:modo===m?'white':'var(--olive)',fontWeight:600,fontSize:13.5,cursor:'pointer',fontFamily:'Instrument Sans,sans-serif'}}>
+            {m==='tandas'?'Por tandas':`Por ${rec.rend_u||'unidades'}`}
+          </button>
+        ))}
+      </div>
+      <FI label={`Cantidad de ${modo==='tandas'?'tandas':(rec.rend_u||'unidades')}`} type="number" min=".5" step=".5" value={cant} onChange={e=>setCant(+e.target.value||1)}/>
+      <div style={{background:'#F0F7E8',borderRadius:12,overflow:'hidden',marginBottom:16}}>
+        <table>
+          <thead style={{background:'rgba(0,0,0,.04)'}}><tr><th>Ingrediente</th><th style={{textAlign:'right'}}>Necesitás</th><th style={{textAlign:'right'}}>Costo</th></tr></thead>
+          <tbody>{items.map((i,idx)=>(
+            <tr key={idx}><td>{i.nombre}</td><td style={{textAlign:'right',fontFamily:'monospace',fontSize:13}}>{i.q%1===0?i.q:i.q.toFixed(3)} {i.unit}</td><td style={{textAlign:'right',fontWeight:600,color:'var(--forest)'}}>{fmt(i.costo,sym)}</td></tr>
+          ))}</tbody>
+        </table>
+        <div style={{padding:'10px 16px',borderTop:'1px solid rgba(0,0,0,.06)',display:'flex',justifyContent:'space-between',fontWeight:700,color:'var(--forest)'}}>
+          <span>Total</span><span>{fmt(total,sym)}</span>
+        </div>
+      </div>
+      <div style={{display:'flex',gap:12,justifyContent:'flex-end'}}>
+        <Btn v='s' onClick={print}>🖨️ Imprimir</Btn>
+        <Btn onClick={onClose}>Cerrar</Btn>
+      </div>
+    </Modal>
+  );
+}
+
+// ── CALCULADORA ───────────────────────────────────────────────────────────
+function Calc({D,ops}){
+  const [q,setQ]=useState('');
+  const [modal,setModal]=useState(null);
+  const [del,setDel]=useState(null);
+  const {sym}=D.cfg;
+  const list=useMemo(()=>D.prod.filter(p=>p.nombre.toLowerCase().includes(q.toLowerCase())),[D.prod,q]);
+  const save=d=>{ops.ups('prod',d,modal?.id);setModal(null);toast(modal?.id?'Producto actualizado':'Producto creado');};
+  return(
+    <div className="pp" style={{maxWidth:960,margin:'0 auto'}}>
+      <PH title="Calculadora de Precios" sub={`${D.prod.length} productos`} action={<Btn onClick={()=>setModal({})}>+ Nuevo producto</Btn>}/>
+      <SB val={q} set={setQ} ph="Buscar producto..."/>
+      {list.length===0?<Empty icon="🧮" title="Sin productos" sub="Calculá el precio de venta de tus panes." action={<Btn onClick={()=>setModal({})}>+ Crear producto</Btn>}/>:
+        <div className="card tbl" style={{overflow:'hidden'}}>
+          <table>
+            <thead><tr><th>Producto</th><th>SKU</th><th>Costo prod.</th><th>Precio venta</th><th>Margen</th><th></th></tr></thead>
+            <tbody>{list.map(p=>{
+              const m=p.cost>0?Math.round((p.price-p.cost)/p.cost*100):null;
+              return <tr key={p.id}>
+                <td style={{fontWeight:600}}>{p.nombre}</td>
+                <td style={{fontSize:12,fontFamily:'monospace',color:'var(--olive)'}}>{p.sku||'—'}</td>
+                <td>{fmt(p.cost||0,sym)}</td>
+                <td style={{fontWeight:700,color:'var(--forest)'}}>{fmt(p.price||0,sym)}</td>
+                <td>{m!=null?<span className={`badge ${m>0?'bg':'brd'}`}>{m}%</span>:'—'}</td>
+                <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setModal(p)}>✏️</Btn><Btn v='g' sm onClick={()=>setDel(p)}>🗑️</Btn></div></td>
+              </tr>;
+            })}</tbody>
+          </table>
+        </div>
+      }
+      {modal!==null&&<ProdModal prod={modal} D={D} onSave={save} onClose={()=>setModal(null)}/>}
+      {del&&<CDel what={del.nombre} onOk={()=>{ops.del('prod',del.id);setDel(null);toast('Producto eliminado','err');}} onNo={()=>setDel(null)}/>}
+    </div>
+  );
+}
+function ProdModal({prod,D,onSave,onClose}){
+  const {sym}=D.cfg;
+  const[f,sf]=useState({nombre:'',sku:'',recs:[],extras:0,labor:0,overhead:0,waste:5,ut_type:'pct',ut:30,ship:0,comm:0,notes:'',...prod});
+  const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
+  const n=k=>e=>sf(p=>({...p,[k]:parseFloat(e.target.value)||0}));
+  const[nr,snr]=useState({rid:'',t:1});
+  const addR=()=>{if(!nr.rid)return;sf(p=>({...p,recs:[...p.recs,{...nr,key:uid()}]}));snr({rid:'',t:1});};
+  const rcost=f.recs.reduce((t,rc)=>{const r=D.rec.find(x=>x.id===rc.rid);return r?t+recipeCost(r,D.ing)*(rc.t||1):t;},0);
+  const base=rcost+(+f.extras)+(+f.labor)+(+f.overhead);
+  const withWaste=base*(1+(+f.waste||0)/100);
+  const utAmt=f.ut_type==='pct'?withWaste*(+f.ut/100):(+f.ut);
+  const final=withWaste+utAmt+(+f.ship)+withWaste*((+f.comm)/100);
+  return(
+    <Modal title={prod.id?'Editar producto':'Nuevo producto'} onClose={onClose} wide>
+      <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:12}}>
+        <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder="Ej: Hogaza masa madre 700g"/>
+        <FI label="SKU" value={f.sku||''} onChange={s('sku')} placeholder="HMM-700"/>
+      </div>
+      <label>Recetas incluidas</label>
+      {f.recs.length>0&&<div style={{border:'1px solid #EEF0E8',borderRadius:10,overflow:'hidden',marginBottom:8}}>
+        <table><thead><tr><th>Receta</th><th>Tandas</th><th>Costo</th><th></th></tr></thead>
+        <tbody>{f.recs.map(rc=>{
+          const r=D.rec.find(x=>x.id===rc.rid);
+          const c=r?recipeCost(r,D.ing)*(rc.t||1):0;
+          return <tr key={rc.key||rc.rid}><td>{r?.nombre||'—'}</td><td style={{textAlign:'center'}}>{rc.t}</td><td style={{color:'var(--forest)'}}>{fmt(c,sym)}</td><td><button onClick={()=>sf(p=>({...p,recs:p.recs.filter(x=>x.key!==rc.key)}))} style={{border:'none',background:'none',cursor:'pointer',color:'#ccc'}} onMouseEnter={e=>e.target.style.color='#e00'} onMouseLeave={e=>e.target.style.color='#ccc'}>✕</button></td></tr>;
+        })}</tbody></table>
+      </div>}
+      <div style={{display:'flex',gap:8,marginBottom:16}}>
+        <select value={nr.rid} onChange={e=>snr(p=>({...p,rid:e.target.value}))} style={{flex:1}}>
+          <option value="">Agregar receta...</option>
+          {D.rec.map(r=><option key={r.id} value={r.id}>{r.nombre}</option>)}
+        </select>
+        <input type="number" min=".5" step=".5" placeholder="Tandas" value={nr.t} onChange={e=>snr(p=>({...p,t:+e.target.value||1}))} style={{width:80}}/>
+        <Btn onClick={addR} disabled={!nr.rid}>+</Btn>
+      </div>
+      <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+        <FI label="Extras/complementos" type="number" value={f.extras} onChange={n('extras')}/>
+        <FI label="Mano de obra" type="number" value={f.labor} onChange={n('labor')}/>
+        <FI label="Gastos indirectos" type="number" value={f.overhead} onChange={n('overhead')}/>
+      </div>
+      <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+        <FI label="Merma (%)" type="number" step=".5" value={f.waste} onChange={n('waste')}/>
+        <F label="Tipo de utilidad">
+          <div style={{display:'flex',gap:8}}>
+            {['pct','fixed'].map(m=><button key={m} onClick={()=>sf(p=>({...p,ut_type:m}))} style={{flex:1,padding:'9px 0',borderRadius:9,border:`1.5px solid ${f.ut_type===m?'var(--forest)':'#E2E8D8'}`,background:f.ut_type===m?'var(--forest)':'white',color:f.ut_type===m?'white':'var(--olive)',fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'Instrument Sans,sans-serif'}}>{m==='pct'?'Porcentaje':'Monto fijo'}</button>)}
+          </div>
+        </F>
+      </div>
+      <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+        <FI label={f.ut_type==='pct'?'Utilidad (%)':'Utilidad'} type="number" value={f.ut} onChange={n('ut')}/>
+        <FI label="Envío" type="number" value={f.ship} onChange={n('ship')}/>
+        <FI label="Comisión (%)" type="number" step=".1" value={f.comm} onChange={n('comm')}/>
+      </div>
+      <div style={{background:'#F0F7E8',borderRadius:12,padding:16,marginBottom:16}}>
+        <h3 className="serif" style={{fontSize:16,color:'var(--forest)',marginBottom:12}}>Resumen de costos</h3>
+        <div style={{display:'flex',flexDirection:'column',gap:6,fontSize:13.5}}>
+          {[['Recetas',rcost],[`Extras`,+f.extras],['Mano de obra',+f.labor],['Gastos ind.',+f.overhead]].map(([l,v])=>v>0&&<div key={l} style={{display:'flex',justifyContent:'space-between',color:'var(--forest)'}}><span>{l}</span><span>{fmt(v,sym)}</span></div>)}
+          <div style={{display:'flex',justifyContent:'space-between',fontWeight:600,paddingTop:6,borderTop:'1px solid rgba(52,82,42,.2)',color:'var(--forest)'}}><span>Subtotal</span><span>{fmt(base,sym)}</span></div>
+          {f.waste>0&&<div style={{display:'flex',justifyContent:'space-between',color:'var(--olive)'}}><span>+ Merma ({f.waste}%)</span><span>{fmt(withWaste-base,sym)}</span></div>}
+          <div style={{display:'flex',justifyContent:'space-between',fontWeight:700,paddingTop:6,borderTop:'1px solid rgba(52,82,42,.2)',color:'var(--forest)'}}><span>Costo producción</span><span>{fmt(withWaste,sym)}</span></div>
+          <div style={{display:'flex',justifyContent:'space-between',color:'#2D6A4F'}}><span>+ Utilidad</span><span>{fmt(utAmt,sym)}</span></div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,borderTop:'2px solid var(--forest)',marginTop:4}}>
+            <span style={{fontWeight:700,fontSize:15,color:'var(--forest)'}}>Precio sugerido</span>
+            <span className="serif" style={{fontSize:26,fontWeight:700,color:'var(--forest)'}}>{fmt(final,sym)}</span>
+          </div>
+        </div>
+      </div>
+      <div style={{display:'flex',gap:12,justifyContent:'flex-end',marginTop:8}}>
+        <Btn v='s' onClick={onClose}>Cancelar</Btn>
+        <Btn onClick={()=>f.nombre.trim()&&onSave({...f,cost:withWaste,price:final})} disabled={!f.nombre.trim()}>Guardar</Btn>
+      </div>
+    </Modal>
+  );
+}
+
+// ── CLIENTES ──────────────────────────────────────────────────────────────
+function Cli({D,ops}){
+  const [q,setQ]=useState('');
+  const [modal,setModal]=useState(null);
+  const [del,setDel]=useState(null);
+  const [sel,setSel]=useState(null);
+  const {sym}=D.cfg;
+  const list=useMemo(()=>D.cli.filter(c=>`${c.nombre} ${c.tel||''}`.toLowerCase().includes(q.toLowerCase())),[D.cli,q]);
+  const save=d=>{ops.ups('cli',d,modal?.id);setModal(null);toast(modal?.id?'Cliente actualizado':'Cliente agregado');};
+  if(sel){
+    const c=D.cli.find(x=>x.id===sel);
+    if(!c){setSel(null);return null;}
+    const peds=D.ped.filter(p=>p.cli_id===c.id).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+    const tot=peds.filter(p=>p.estado==='Entregado').reduce((s,p)=>s+(p.total||0),0);
+    return(
+      <div className="pp" style={{maxWidth:800,margin:'0 auto'}}>
+        <Btn v='g' onClick={()=>setSel(null)}>← Volver</Btn>
+        <div className="card" style={{padding:24,margin:'16px 0 24px'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+            <div>
+              <h1 className="serif" style={{fontSize:24,color:'var(--forest)'}}>{c.nombre}</h1>
+              {c.tel&&<p style={{fontSize:13,color:'var(--olive)',marginTop:6}}>📱 {c.tel}</p>}
+              {c.email&&<p style={{fontSize:13,color:'var(--olive)'}}>✉️ {c.email}</p>}
+              {c.notes&&<p style={{fontSize:13,color:'var(--olive)',fontStyle:'italic',marginTop:8}}>{c.notes}</p>}
+            </div>
+            <div style={{textAlign:'right'}}>
+              <div className="serif" style={{fontSize:24,fontWeight:700,color:'var(--forest)'}}>{fmt(tot,sym)}</div>
+              <div style={{fontSize:11,textTransform:'uppercase',letterSpacing:'.05em',color:'var(--olive)'}}>Total gastado</div>
+              <div className="serif" style={{fontSize:20,fontWeight:700,color:'var(--forest)',marginTop:8}}>{peds.length}</div>
+              <div style={{fontSize:11,textTransform:'uppercase',letterSpacing:'.05em',color:'var(--olive)'}}>Pedidos</div>
+            </div>
+          </div>
+        </div>
+        <h2 className="serif" style={{fontSize:18,color:'var(--forest)',marginBottom:12}}>Historial de pedidos</h2>
+        {peds.length===0?<p style={{color:'var(--olive)'}}>Sin pedidos aún.</p>:
+          <div className="card tbl" style={{overflow:'hidden'}}>
+            <table><thead><tr><th>Fecha</th><th>Entrega</th><th>Descripción</th><th>Total</th><th>Estado</th></tr></thead>
+            <tbody>{peds.map(p=><tr key={p.id}><td>{fdate(p.fecha)}</td><td>{fdate(p.fecha_e)}</td><td style={{fontSize:13,color:'var(--olive)'}}>{p.desc||'—'}</td><td style={{fontWeight:700}}>{fmt(p.total||0,sym)}</td><td><span className={`badge ${BADGE_E[p.estado]||'bc'}`}>{p.estado}</span></td></tr>)}</tbody>
+            </table>
+          </div>
+        }
+      </div>
+    );
+  }
+  return(
+    <div className="pp" style={{maxWidth:960,margin:'0 auto'}}>
+      <PH title="Clientes" sub={`${D.cli.length} clientes`} action={<Btn onClick={()=>setModal({})}>+ Nuevo cliente</Btn>}/>
+      <SB val={q} set={setQ} ph="Buscar por nombre o teléfono..."/>
+      {list.length===0?<Empty icon="👥" title="Sin clientes" sub="Agregá tus clientes para llevar su historial." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
+        <div className="card tbl" style={{overflow:'hidden'}}>
+          <table><thead><tr><th>Cliente</th><th>Teléfono</th><th>Pedidos</th><th>Total gastado</th><th></th></tr></thead>
+          <tbody>{list.map(c=>{
+            const peds=D.ped.filter(p=>p.cli_id===c.id);
+            const tot=peds.filter(p=>p.estado==='Entregado').reduce((s,p)=>s+(p.total||0),0);
+            return <tr key={c.id}>
+              <td><button onClick={()=>setSel(c.id)} style={{fontWeight:600,color:'var(--forest)',background:'none',border:'none',cursor:'pointer',fontSize:13.5,textDecoration:'underline'}}>{c.nombre}</button></td>
+              <td style={{color:'var(--olive)'}}>{c.tel||'—'}</td>
+              <td>{peds.length}</td>
+              <td style={{fontWeight:600}}>{fmt(tot,sym)}</td>
+              <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setSel(c.id)}>👁️</Btn><Btn v='g' sm onClick={()=>setModal(c)}>✏️</Btn><Btn v='g' sm onClick={()=>setDel(c)}>🗑️</Btn></div></td>
+            </tr>;
+          })}</tbody></table>
+        </div>
+      }
+      {modal!==null&&<CliModal c={modal} onSave={save} onClose={()=>setModal(null)}/>}
+      {del&&<CDel what={del.nombre} onOk={()=>{ops.del('cli',del.id);setDel(null);toast('Cliente eliminado','err');}} onNo={()=>setDel(null)}/>}
+    </div>
+  );
+}
+function CliModal({c,onSave,onClose}){
+  const[f,sf]=useState({nombre:'',tel:'',email:'',notes:'',...c});
+  const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
+  return(
+    <Modal title={c.id?'Editar cliente':'Nuevo cliente'} onClose={onClose}>
+      <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder="Nombre completo"/>
+      <FI label="Teléfono / WhatsApp" value={f.tel||''} onChange={s('tel')} placeholder="+506 8888-8888"/>
+      <FI label="Email" type="email" value={f.email||''} onChange={s('email')} placeholder="correo@ejemplo.com"/>
+      <FT label="Notas" value={f.notes||''} onChange={s('notes')} placeholder="Preferencias, alergias..."/>
+      <div style={{display:'flex',gap:12,justifyContent:'flex-end',marginTop:8}}>
+        <Btn v='s' onClick={onClose}>Cancelar</Btn>
+        <Btn onClick={()=>f.nombre.trim()&&onSave(f)} disabled={!f.nombre.trim()}>Guardar</Btn>
+      </div>
+    </Modal>
+  );
+}
+
+// ── PEDIDOS ───────────────────────────────────────────────────────────────
+function Ped({D,ops}){
+  const [q,setQ]=useState('');
+  const [est,setEst]=useState('Todos');
+  const [modal,setModal]=useState(null);
+  const [del,setDel]=useState(null);
+  const {sym}=D.cfg;
+  const list=useMemo(()=>{
+    let r=D.ped;
+    if(est!=='Todos')r=r.filter(p=>p.estado===est);
+    if(q){const ql=q.toLowerCase();r=r.filter(p=>{const c=D.cli.find(x=>x.id===p.cli_id);return(c?.nombre||'').toLowerCase().includes(ql)||(p.desc||'').toLowerCase().includes(ql);});}
+    return r.sort((a,b)=>(b.fecha_e||b.fecha||'').localeCompare(a.fecha_e||a.fecha||''));
+  },[D.ped,est,q,D.cli]);
+  const save=d=>{ops.ups('ped',d,modal?.id);setModal(null);toast(modal?.id?'Pedido actualizado':'Pedido creado');};
+  const cl=id=>D.cli.find(c=>c.id===id);
+  function nota(p){
+    const c=cl(p.cli_id);const saldo=(p.total||0)-(p.adelanto||0);
+    const html=`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px"><div style="text-align:center;border-bottom:2px solid #34522A;padding-bottom:20px;margin-bottom:20px"><div style="font-family:serif;font-size:34px;font-style:italic;color:#34522A">sensa</div><div style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#818A6D">Panetteria</div>${D.cfg.dir?`<div style="font-size:12px;color:#818A6D;margin-top:4px">${esc(D.cfg.dir)}</div>`:''}</div><h2 style="color:#34522A;margin:0 0 16px">Nota de Venta #${p.id.slice(-6).toUpperCase()}</h2><p><strong>Cliente:</strong> ${c?.nombre||'—'}</p>${c?.tel?`<p><strong>Tel:</strong> ${c.tel}</p>`:''}<p><strong>Entrega:</strong> ${fdate(p.fecha_e)}</p><div style="background:#F5F6EF;padding:12px;border-radius:8px;margin:16px 0">${esc(p.desc||'Sin descripción')}</div><table style="width:100%;border-collapse:collapse"><tr style="border-top:2px solid #34522A;border-bottom:1px solid #eee"><td style="padding:10px 0;font-weight:bold">Total</td><td style="text-align:right;font-size:24px;font-weight:bold;color:#34522A;font-family:serif">${fmt(p.total||0,sym)}</td></tr>${(p.adelanto||0)>0?`<tr style="border-bottom:1px solid #eee"><td style="padding:8px 0">Adelanto</td><td style="text-align:right;color:#2D6A4F">-${fmt(p.adelanto,sym)}</td></tr>`:''}${saldo>0.01?`<tr><td style="padding:8px 0;font-weight:bold">Saldo pendiente</td><td style="text-align:right;color:#BE123C;font-weight:bold">${fmt(saldo,sym)}</td></tr>`:'<tr><td style="padding:8px 0;color:#2D6A4F" colspan="2">✓ Pagado completamente</td></tr>'}</table>${p.notes?`<p style="color:#818A6D;font-size:13px;font-style:italic;margin-top:16px">${esc(p.notes)}</p>`:''}<p style="text-align:center;color:#DAE38E;margin-top:32px;font-weight:700">¡Gracias por su preferencia!</p></div>`;
+    document.getElementById('pa').innerHTML=html;window.print();
+  }
+  return(
+    <div className="pp" style={{maxWidth:1100,margin:'0 auto'}}>
+      <PH title="Pedidos" sub={`${D.ped.length} totales`} action={<Btn onClick={()=>setModal({})}>+ Nuevo pedido</Btn>}/>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
+        {['Todos',...ESTADOS].map(e=><button key={e} onClick={()=>setEst(e)} style={{padding:'5px 14px',borderRadius:20,border:`1.5px solid ${est===e?'var(--forest)':'#E2E8D8'}`,background:est===e?'var(--forest)':'white',color:est===e?'white':'var(--olive)',fontWeight:600,fontSize:12.5,cursor:'pointer',fontFamily:'Instrument Sans,sans-serif'}}>{e}</button>)}
+      </div>
+      <SB val={q} set={setQ} ph="Buscar por cliente o descripción..."/>
+      {list.length===0?<Empty icon="📦" title="Sin pedidos" sub="Registrá tus pedidos para controlar entregas y cobros." action={<Btn onClick={()=>setModal({})}>+ Registrar</Btn>}/>:
+        <div className="card tbl" style={{overflow:'hidden'}}>
+          <table><thead><tr><th>Cliente</th><th>Descripción</th><th>Entrega</th><th>Total</th><th>Saldo</th><th>Estado</th><th></th></tr></thead>
+          <tbody>{list.map(p=>{
+            const saldo=(p.total||0)-(p.adelanto||0);
+            return <tr key={p.id}>
+              <td style={{fontWeight:600}}>{cl(p.cli_id)?.nombre||'Sin cliente'}</td>
+              <td style={{fontSize:13,color:'var(--olive)',maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.desc||'—'}</td>
+              <td>{fdate(p.fecha_e)}</td>
+              <td style={{fontWeight:700}}>{fmt(p.total||0,sym)}</td>
+              <td style={{fontWeight:saldo>0.01?700:400,color:saldo>0.01?'#BE123C':'#ccc'}}>{saldo>0.01?fmt(saldo,sym):'✓'}</td>
+              <td><span className={`badge ${BADGE_E[p.estado]||'bc'}`}>{p.estado}</span></td>
+              <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>nota(p)} title="Nota">🖨️</Btn><Btn v='g' sm onClick={()=>setModal(p)}>✏️</Btn><Btn v='g' sm onClick={()=>setDel(p)}>🗑️</Btn></div></td>
+            </tr>;
+          })}</tbody></table>
+        </div>
+      }
+      {modal!==null&&<PedModal ped={modal} D={D} onSave={save} onClose={()=>setModal(null)}/>}
+      {del&&<CDel what={`pedido de ${cl(del.cli_id)?.nombre||'cliente'}`} onOk={()=>{ops.del('ped',del.id);setDel(null);toast('Pedido eliminado','err');}} onNo={()=>setDel(null)}/>}
+    </div>
+  );
+}
+function PedModal({ped,D,onSave,onClose}){
+  const {sym}=D.cfg;
+  const[f,sf]=useState({cli_id:'',fecha:today(),fecha_e:'',desc:'',notes:'',total:'',adelanto:'',estado:'Cotización',...ped});
+  const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
+  const saldo=(+f.total||0)-(+f.adelanto||0);
+  return(
+    <Modal title={ped.id?'Editar pedido':'Nuevo pedido'} onClose={onClose} wide>
+      <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+        <F label="Cliente *"><select value={f.cli_id} onChange={s('cli_id')}><option value="">Seleccionar...</option>{D.cli.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select></F>
+        <FS label="Estado" value={f.estado} onChange={s('estado')} opts={ESTADOS}/>
+      </div>
+      <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+        <FI label="Fecha de pedido" type="date" value={f.fecha} onChange={s('fecha')}/>
+        <FI label="Fecha de entrega" type="date" value={f.fecha_e||''} onChange={s('fecha_e')}/>
+      </div>
+      <FT label="Descripción *" value={f.desc||''} onChange={s('desc')} placeholder="Ej: 2 hogazas masa madre 700g + 1 baguette"/>
+      <div className="g3" style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
+        <FI label={`Total (${sym})`} type="number" step="50" value={f.total||''} onChange={s('total')}/>
+        <FI label={`Adelanto (${sym})`} type="number" step="50" value={f.adelanto||''} onChange={s('adelanto')}/>
+        <F label="Saldo pendiente"><div style={{padding:'9px 12px',borderRadius:9,fontWeight:700,fontSize:15,background:saldo>0.01?'#FFF1F2':'#F0FDF4',color:saldo>0.01?'#BE123C':'#2D6A4F'}}>{saldo>0.01?fmt(saldo,sym):'✓ Pagado'}</div></F>
+      </div>
+      <FT label="Notas" value={f.notes||''} onChange={s('notes')} placeholder="Instrucciones, observaciones..."/>
+      <div style={{display:'flex',gap:12,justifyContent:'flex-end',marginTop:8}}>
+        <Btn v='s' onClick={onClose}>Cancelar</Btn>
+        <Btn onClick={()=>f.cli_id&&onSave(f)} disabled={!f.cli_id}>Guardar</Btn>
+      </div>
+    </Modal>
+  );
+}
+
+// ── CALENDARIO ────────────────────────────────────────────────────────────
+function CalDayModal({day,peds,cli,sym,onClose}){
+  const cl=id=>cli.find(c=>c.id===id);
+  return(
+    <Modal title={`Pedidos — ${fdate(day)}`} onClose={onClose}>
+      {peds.map(p=>(
+        <div key={p.id} style={{border:'1px solid #EEF0E8',borderRadius:10,padding:16,marginBottom:12}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+            <span style={{fontWeight:600}}>{cl(p.cli_id)?.nombre||'Sin cliente'}</span>
+            <span className={`badge ${BADGE_E[p.estado]||'bc'}`}>{p.estado}</span>
+          </div>
+          <p style={{fontSize:13,color:'var(--olive)'}}>{p.desc||'—'}</p>
+          <div style={{display:'flex',justifyContent:'space-between',marginTop:8,fontSize:13}}>
+            <span style={{color:'var(--olive)'}}>Total: <strong style={{color:'var(--forest)'}}>{fmt(p.total||0,sym)}</strong></span>
+            {(p.total||0)-(p.adelanto||0)>0.01&&<span style={{color:'#BE123C',fontWeight:700}}>Saldo: {fmt((p.total||0)-(p.adelanto||0),sym)}</span>}
+          </div>
+        </div>
+      ))}
+      <Btn v='s' onClick={onClose}>Cerrar</Btn>
+    </Modal>
+  );
+}
+function Cal({D}){
+  const [m,setM]=useState(()=>{const d=new Date();return{y:d.getFullYear(),mo:d.getMonth()};});
+  const [day,setDay]=useState(null);
+  const {sym}=D.cfg;
+  const first=new Date(m.y,m.mo,1),off=(first.getDay()+6)%7,last=new Date(m.y,m.mo+1,0).getDate();
+  const dias=[];
+  for(let i=0;i<off;i++){const d=new Date(m.y,m.mo,-off+i+1);dias.push({d:d.toISOString().split('T')[0],curr:false});}
+  for(let i=1;i<=last;i++)dias.push({d:new Date(m.y,m.mo,i).toISOString().split('T')[0],curr:true});
+  const gd=date=>D.ped.filter(p=>p.fecha_e===date&&p.estado!=='Cancelado');
+  const cl=id=>D.cli.find(c=>c.id===id);
+  const hoy=today();
+  const nav=v=>{const nd=new Date(m.y,m.mo+v);setM({y:nd.getFullYear(),mo:nd.getMonth()});};
+  return(
+    <div className="pp" style={{maxWidth:900,margin:'0 auto'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
+        <h1 style={{fontFamily:'Instrument Serif,serif',fontSize:30,fontStyle:'italic',color:'var(--forest)',fontWeight:400}}>Calendario</h1>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <Btn v='s' sm onClick={()=>nav(-1)}>‹</Btn>
+          <span style={{fontWeight:600,color:'var(--forest)',minWidth:160,textAlign:'center'}}>{MESES[m.mo]} {m.y}</span>
+          <Btn v='s' sm onClick={()=>nav(1)}>›</Btn>
+        </div>
+      </div>
+      <div className="card tbl" style={{overflow:'hidden'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',background:'var(--forest)'}}>
+          {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d=><div key={d} style={{textAlign:'center',padding:'10px 0',fontSize:11,fontWeight:700,color:'var(--pistachio)',letterSpacing:'.05em'}}>{d}</div>)}
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:1,background:'#E8EDE0'}}>
+          {dias.map(({d,curr})=>{
+            const peds=gd(d),isT=d===hoy;
+            return(
+              <div key={d} onClick={()=>peds.length&&setDay(d)} style={{background:'white',padding:8,minHeight:72,opacity:curr?1:.4,cursor:peds.length?'pointer':'default'}}>
+                <div style={{fontSize:13.5,fontWeight:600,width:26,height:26,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',background:isT?'var(--forest)':'transparent',color:isT?'white':'#555',marginBottom:4}}>{new Date(d+'T12:00').getDate()}</div>
+                {peds.slice(0,2).map(p=><div key={p.id} style={{fontSize:11,background:'var(--pistachio)',color:'var(--forest)',borderRadius:4,padding:'1px 6px',marginBottom:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontWeight:600}}>{cl(p.cli_id)?.nombre?.split(' ')[0]||'?'}</div>)}
+                {peds.length>2&&<div style={{fontSize:11,color:'var(--olive)'}}>+{peds.length-2}</div>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {day&&<CalDayModal day={day} peds={gd(day)} cli={D.cli} sym={sym} onClose={()=>setDay(null)}/>}
+    </div>
+  );
+}
+
+// ── REPORTES ──────────────────────────────────────────────────────────────
+function Rep({D}){
+  const {sym}=D.cfg;
+  const [desde,setDesde]=useState(()=>{const d=new Date();d.setDate(1);return d.toISOString().split('T')[0];});
+  const [hasta,setHasta]=useState(today);
+  const peds=useMemo(()=>D.ped.filter(p=>p.estado==='Entregado'&&(p.fecha||'')>=desde&&(p.fecha||'')<=hasta),[D.ped,desde,hasta]);
+  const total=peds.reduce((s,p)=>s+(p.total||0),0);
+  const ticket=peds.length?total/peds.length:0;
+  const nclients=new Set(peds.map(p=>p.cli_id)).size;
+  const byDay=useMemo(()=>{const m={};peds.forEach(p=>{m[p.fecha]=(m[p.fecha]||0)+(p.total||0);});return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0]));},[ peds]);
+  const topCli=useMemo(()=>{const m={};peds.forEach(p=>{if(!m[p.cli_id])m[p.cli_id]={n:0,t:0};m[p.cli_id].n++;m[p.cli_id].t+=p.total||0;});return Object.entries(m).map(([id,v])=>({c:D.cli.find(x=>x.id===id),...v})).filter(x=>x.c).sort((a,b)=>b.t-a.t).slice(0,5);},[peds,D.cli]);
+  const mx=Math.max(...byDay.map(v=>v[1]),1);
+  return(
+    <div className="pp" style={{maxWidth:900,margin:'0 auto'}}>
+      <h1 style={{fontFamily:'Instrument Serif,serif',fontSize:30,fontStyle:'italic',color:'var(--forest)',fontWeight:400,marginBottom:28}}>Reportes de Venta</h1>
+      <div className="card" style={{padding:16,marginBottom:24,display:'flex',flexWrap:'wrap',gap:16,alignItems:'flex-end'}}>
+        <div><label>Desde</label><input type="date" value={desde} onChange={e=>setDesde(e.target.value)} style={{width:170}}/></div>
+        <div><label>Hasta</label><input type="date" value={hasta} onChange={e=>setHasta(e.target.value)} style={{width:170}}/></div>
+      </div>
+      <div className="g2" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12,marginBottom:28}}>
+        {[{l:'Ventas totales',v:fmt(total,sym),i:'💰',bg:'#F0F7E8',c:'var(--forest)'},{l:'Pedidos entregados',v:peds.length,i:'📦',bg:'#EEF6FF',c:'#1E3A5F'},{l:'Ticket promedio',v:fmt(ticket,sym),i:'🧾',bg:'var(--cotton)',c:'#9D174D'},{l:'Clientes atendidos',v:nclients,i:'👥',bg:'#F5F3FF',c:'#4C1D95'}].map(s=>(
+          <div key={s.l} className="card" style={{padding:18,background:s.bg}}>
+            <div style={{fontSize:26,marginBottom:8}}>{s.i}</div>
+            <div className="serif" style={{fontSize:24,fontWeight:700,color:s.c}}>{s.v}</div>
+            <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'.05em',color:s.c,opacity:.7,marginTop:4}}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+      {byDay.length>0&&<div className="card" style={{padding:20,marginBottom:20}}>
+        <h2 className="serif" style={{fontSize:17,color:'var(--forest)',marginBottom:16}}>Ventas diarias</h2>
+        <div style={{display:'flex',alignItems:'flex-end',gap:6,overflowX:'auto',paddingBottom:28,height:140,paddingTop:4}}>
+          {byDay.map(([f,v])=>(
+            <div key={f} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,flexShrink:0,minWidth:40}}>
+              <div style={{fontSize:9.5,fontWeight:700,color:'var(--forest)',whiteSpace:'nowrap'}}>{sym==='₡'?Math.round(v/1000)+'K':'$'+Math.round(v)}</div>
+              <div style={{width:24,height:`${Math.max((v/mx)*80,4)}px`,borderRadius:'4px 4px 0 0',background:'var(--forest)',opacity:.75+.25*(v/mx)}} title={`${f}: ${fmt(v,sym)}`}/>
+              <div style={{fontSize:9,color:'var(--olive)',transform:'rotate(-40deg)',transformOrigin:'top left',whiteSpace:'nowrap',marginTop:2,marginLeft:6}}>{f.slice(5)}</div>
+            </div>
+          ))}
+        </div>
+      </div>}
+      {topCli.length>0&&<div className="card" style={{padding:20,overflow:'hidden'}}>
+        <h2 className="serif" style={{fontSize:17,color:'var(--forest)',marginBottom:12}}>Top clientes</h2>
+        <table><thead><tr><th>Cliente</th><th>Pedidos</th><th>Total</th></tr></thead>
+        <tbody>{topCli.map(({c,n,t})=><tr key={c.id}><td style={{fontWeight:600}}>{c.nombre}</td><td>{n}</td><td style={{fontWeight:700,color:'var(--forest)'}}>{fmt(t,sym)}</td></tr>)}</tbody></table>
+      </div>}
+      {peds.length===0&&<Empty icon="📊" title="Sin datos en este período" sub="Ajustá el rango o registrá pedidos como 'Entregado'."/>}
+    </div>
+  );
+}
+
+// ── CONFIGURACIÓN ─────────────────────────────────────────────────────────
+function Cfg({D,ops,synced}){
+  const [f,sf]=useState({...D.cfg});
+  const [showSetup,setShowSetup]=useState(false);
+  const [confirm,setConfirm]=useState(null);
+  function save(){ops.saveCfg(f);toast('Configuración guardada');}
+  function exportD(){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));
+    a.download=`sensa-backup-${today()}.json`;a.click();
+  }
+  function importD(e){
+    const file=e.target.files[0];if(!file)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        const d=JSON.parse(ev.target.result);
+        setConfirm({title:'Importar datos',body:'Esto reemplaza todo lo actual. ¿Continuás?',okLabel:'Importar',danger:true,onOk:()=>{
+          ['ing','rec','prod','cli','ped','cfg'].forEach(k=>d[k]&&ops.replaceAll(k,d[k]));
+          toast('Datos importados correctamente');setConfirm(null);
+        }});
+      }catch{toast('Archivo inválido — usá un backup de Sensa','err');}
+    };
+    r.readAsText(file);e.target.value='';
+  }
+  function discFB(){setConfirm({title:'Desconectar Firebase',body:'Los datos dejarán de sincronizarse. Podés reconectar cuando quieras.',okLabel:'Desconectar',danger:true,onOk:()=>{localStorage.removeItem(LSF);window.location.reload();}});}
+  if(showSetup)return <Setup onDone={()=>window.location.reload()} onSkip={()=>setShowSetup(false)}/>;
+  return(<>
+    <div className="pp" style={{maxWidth:600,margin:'0 auto'}}>
+      <h1 style={{fontFamily:'Instrument Serif,serif',fontSize:30,fontStyle:'italic',color:'var(--forest)',fontWeight:400,marginBottom:28}}>Configuración</h1>
+      <div className="card" style={{padding:24,marginBottom:16}}>
+        <h2 className="serif" style={{fontSize:18,color:'var(--forest)',marginBottom:16}}>Datos del negocio</h2>
+        <FI label="Nombre del negocio" value={f.nombre||''} onChange={e=>sf(p=>({...p,nombre:e.target.value}))}/>
+        <FI label="Dirección" value={f.dir||''} onChange={e=>sf(p=>({...p,dir:e.target.value}))} placeholder="San José, Costa Rica"/>
+        <FI label="Teléfono / WhatsApp" value={f.tel||''} onChange={e=>sf(p=>({...p,tel:e.target.value}))} placeholder="+506 8888-8888"/>
+        <F label="Moneda">
+          <select value={f.moneda||'CRC'} onChange={e=>{const mo=MONEDAS.find(x=>x.value===e.target.value);sf(p=>({...p,moneda:mo.value,sym:mo.sym}));}}>
+            {MONEDAS.map(m=><option key={m.value} value={m.value}>{m.label}</option>)}
+          </select>
+        </F>
+        <Btn onClick={save}>Guardar cambios</Btn>
+      </div>
+      <div className="card" style={{padding:24,marginBottom:16}}>
+        <h2 className="serif" style={{fontSize:18,color:'var(--forest)',marginBottom:6}}>Sincronización en la nube</h2>
+        <p style={{fontSize:13,color:'var(--olive)',marginBottom:16}}>Accedé desde cualquier dispositivo en tiempo real.</p>
+        {synced?(
+          <div>
+            <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',borderRadius:10,background:'#F0F7E8',marginBottom:12}}>
+              <div style={{width:8,height:8,borderRadius:'50%',background:'#2D6A4F'}}/>
+              <span style={{fontSize:13.5,fontWeight:600,color:'var(--forest)'}}>Firebase activo — sincronización en tiempo real</span>
+            </div>
+            <Btn v='d' onClick={discFB}>Desconectar Firebase</Btn>
+          </div>
+        ):(
+          <div>
+            <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',borderRadius:10,background:'var(--cream)',marginBottom:12}}>
+              <div style={{width:8,height:8,borderRadius:'50%',background:'#ccc'}}/>
+              <span style={{fontSize:13.5,color:'var(--olive)'}}>Solo este dispositivo</span>
+            </div>
+            <Btn onClick={()=>setShowSetup(true)}>☁️ Activar sincronización gratuita</Btn>
+          </div>
+        )}
+      </div>
+      <div className="card" style={{padding:24}}>
+        <h2 className="serif" style={{fontSize:18,color:'var(--forest)',marginBottom:6}}>Respaldo de datos</h2>
+        <p style={{fontSize:13,color:'var(--olive)',marginBottom:16}}>Exportá o importá todos tus datos.</p>
+        <div style={{display:'flex',gap:12}}>
+          <Btn v='s' onClick={exportD}>📤 Exportar</Btn>
+          <label style={{display:'inline-flex',alignItems:'center',gap:6,borderRadius:9,fontWeight:600,fontSize:13.5,cursor:'pointer',padding:'8px 16px',background:'white',color:'var(--forest)',border:'1.5px solid #C8D8B8',fontFamily:'Instrument Sans,sans-serif'}}>
+            📥 Importar<input type="file" accept=".json" onChange={importD} style={{display:'none'}}/>
+          </label>
+        </div>
+      </div>
+    </div>
+    {confirm&&<CConfirm {...confirm} onNo={()=>setConfirm(null)}/>}
+    </>
+  );
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────────────────
+function Sidebar({page,go,neg,synced,onClose}){
+  return(
+    <div className="sidebar">
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:28,paddingLeft:4}}>
+        <div>
+          <div className="sidebar-logo">sensa</div>
+          <div className="sidebar-sub">Panetteria</div>
+        </div>
+        {onClose&&<button onClick={onClose} style={{background:'rgba(255,255,255,.1)',border:'none',cursor:'pointer',color:'rgba(245,246,239,.6)',fontSize:13,padding:'4px 7px',borderRadius:7,lineHeight:1}}>✕</button>}
+      </div>
+      <nav style={{flex:1}}>
+        {NAV.map(n=><div key={n.id} className={`nav-item ${page===n.id?'active':''}`} onClick={()=>{go(n.id);onClose&&onClose();}}>
+          <span style={{fontSize:15,width:20,textAlign:'center',opacity:.9}}>{n.icon}</span>
+          <span>{n.label}</span>
+        </div>)}
+      </nav>
+      <div style={{paddingTop:14,marginTop:8,borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',gap:8}}>
+        <div style={{width:8,height:8,borderRadius:'50%',background:synced?'var(--pistachio)':'rgba(255,255,255,.2)',boxShadow:synced?'0 0 6px rgba(218,227,142,.5)':'none',transition:'all .3s'}}/>
+        <span style={{fontSize:11.5,color:synced?'rgba(218,227,142,.6)':'rgba(245,246,239,.3)'}}>{synced?'Sincronizado':'Solo local'}</span>
+      </div>
+    </div>
+  );
+}
+
+// ── APP ───────────────────────────────────────────────────────────────────
+function App(){
+  const [data,setData]=useState(loadLS);
+  const [page,setPage]=useState('home');
+  const [mob,setMob]=useState(false);
+  const [synced,setSynced]=useState(false);
+  const unsubs=useRef({});
+
+  useEffect(()=>{
+    const FB_CONFIG = {
+      config: {
+        apiKey: "AIzaSyAmWMtzUVGMdN9MQQSx8Xq7ymhvx1LZAkU",
+        authDomain: "sensa-panetteria.firebaseapp.com",
+        projectId: "sensa-panetteria",
+        storageBucket: "sensa-panetteria.firebasestorage.app",
+        messagingSenderId: "260604622284",
+        appId: "1:260604622284:web:d5e307653c314b71ef5969"
+      },
+      workspaceId: "sensa"
+    };
+    const saved = loadFB() || FB_CONFIG;
+    localStorage.setItem(LSF, JSON.stringify(saved));
+    const ok = initFB(saved.config, saved.workspaceId);
+    if(ok){ setSynced(true); subscribeAll(); }
+  },[]);
+
+  useEffect(()=>{saveLS(data);},[data]);
+
+  function subscribeAll(){
+    ['ing','rec','prod','cli','ped'].forEach(c=>{
+      if(unsubs.current[c])unsubs.current[c]();
+      unsubs.current[c]=col(c).onSnapshot(snap=>{
+        const items=snap.docs.map(d=>({id:d.id,...d.data()}));
+        setData(p=>({...p,[c]:items}));
+      });
+    });
+    col('config').doc('main').onSnapshot(doc=>{
+      if(doc.exists())setData(p=>({...p,cfg:{...p.cfg,...doc.data()}}));
+    });
+  }
+
+  const ops=useMemo(()=>({
+    ups(coll,item,existId){
+      const final=existId?{...item,id:existId}:{...item,id:item.id||uid()};
+      // Optimistic local update always (instant UI response)
+      setData(p=>{const list=p[coll]||[];const ex=list.find(x=>x.id===final.id);return{...p,[coll]:ex?list.map(x=>x.id===final.id?final:x):[...list,final]};});
+      // Then sync to Firebase if connected
+      if(synced){fbUpsert(coll,final).catch(()=>toast('Error al guardar en la nube','err'));}
+    },
+    del(coll,id){
+      // Optimistic local delete
+      setData(p=>({...p,[coll]:(p[coll]||[]).filter(x=>x.id!==id)}));
+      if(synced){fbDel(coll,id).catch(()=>toast('Error al eliminar en la nube','err'));}
+    },
+    saveCfg(cfg){
+      setData(p=>({...p,cfg}));
+      if(synced){fbCfg(cfg).catch(()=>toast('Error al guardar config','err'));}
+    },
+    replaceAll(k,v){setData(p=>({...p,[k]:v}));}
+  }),[synced]);
+
+  const props={D:data,ops,go:setPage};
+  const views={home:<Home {...props}/>,ing:<Ing {...props}/>,rec:<Rec {...props}/>,calc:<Calc {...props}/>,cli:<Cli {...props}/>,ped:<Ped {...props}/>,cal:<Cal {...props}/>,rep:<Rep {...props}/>,cfg:<Cfg {...props} synced={synced}/>};
+
+  return(
+    <div style={{display:'flex',height:'100vh',overflow:'hidden'}}>
+      {/* Sidebar — oculto en mobile vía CSS */}
+      <div className="sb-desktop">
+        <Sidebar page={page} go={setPage} synced={synced}/>
+      </div>
+
+      {/* Mobile overlay */}
+      {mob&&<div style={{position:'fixed',inset:0,zIndex:50,display:'flex'}}>
+        <div onClick={()=>setMob(false)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.5)',backdropFilter:'blur(3px)'}}/>
+        <div style={{position:'relative',zIndex:10}}>
+          <Sidebar page={page} go={setPage} synced={synced} onClose={()=>setMob(false)}/>
+        </div>
+      </div>}
+
+      {/* Main */}
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+        {/* Mobile header */}
+        <div className="mob-bar" style={{alignItems:'center',gap:12,padding:'10px 14px',background:'var(--forest)',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
+          <button className="ham-btn" onClick={()=>setMob(true)} aria-label="Abrir menú">
+            <span/><span/><span/>
+          </button>
+          <div style={{flex:1,display:'flex',alignItems:'baseline',gap:8}}>
+            <span style={{fontFamily:'Instrument Serif,serif',fontStyle:'italic',fontSize:20,color:'var(--pistachio)',lineHeight:1}}>sensa</span>
+            <span style={{fontSize:12,color:'rgba(218,227,142,.5)',fontWeight:500}}>·</span>
+            <span style={{fontWeight:600,fontSize:13.5,color:'rgba(245,246,239,.8)'}}>{NAV.find(n=>n.id===page)?.label||'Inicio'}</span>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:6}}>
+            <div style={{width:7,height:7,borderRadius:'50%',background:synced?'var(--pistachio)':'rgba(255,255,255,.2)',boxShadow:synced?'0 0 5px rgba(218,227,142,.5)':'none'}}/>
+          </div>
+        </div>
+        <div style={{flex:1,overflowY:'auto',background:'var(--cream)'}}>
+          {views[page]||views.home}
+        </div>
+      </div>
+      <Toaster/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <ErrorBoundary><App/></ErrorBoundary>
+);
+</script>
+</body>
+</html>
