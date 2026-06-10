@@ -128,6 +128,17 @@
     /* ── Back button mobile ── */
     .back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1.5px solid #C8D8B8;background:#fff;color:var(--forest);font-weight:600;font-size:13.5px;cursor:pointer;font-family:'Instrument Sans',sans-serif;margin-bottom:16px;-webkit-tap-highlight-color:transparent;}
     .back-btn:active{background:var(--cream);}
+    /* ── FAB ── */
+    .fab{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom,0px) + 14px);right:16px;width:52px;height:52px;border-radius:50%;background:var(--forest);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(52,82,42,.38);z-index:35;display:none;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .15s;flex-shrink:0;}
+    .fab:active{transform:scale(.91);box-shadow:0 2px 8px rgba(52,82,42,.25);}
+    @media(max-width:960px){.fab{display:flex!important;}}
+    /* ── Mobile table: sticky actions column ── */
+    @media(max-width:960px){
+      .tbl-sticky th:last-child,.tbl-sticky td:last-child{position:sticky;right:0;background:#fff;box-shadow:-2px 0 6px rgba(0,0,0,.05);}
+      .tbl-sticky tr:hover td:last-child{background:#F7F9F3;}
+      /* Larger touch targets for action buttons in table */
+      .tbl-sticky td:last-child .btn{min-height:40px;min-width:40px;}
+    }
     @media print{body>*{display:none!important;}#pa{display:block!important;}}
     #pa{display:none;}
     ::-webkit-scrollbar{width:5px;height:5px;}
@@ -165,7 +176,7 @@ const NAV = [
   {id:'rep',label:'Reportes',icon:'chart'},
   {id:'cfg',label:'Configuración',icon:'settings'},
 ];
-const DEF = {ing:[],rec:[],prod:[],cli:[],ped:[],cfg:{nombre:'Sensa Panetteria',moneda:'CRC',sym:'₡',dir:'',tel:'',gastos_fijos:0,horas_mes:60}};
+const DEF = {ing:[],rec:[],prod:[],cli:[],ped:[],pack:[],cfg:{nombre:'Sensa Panetteria',moneda:'CRC',sym:'₡',dir:'',tel:'',gastos_fijos:0,horas_mes:60,costos:[]}};
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
@@ -176,7 +187,9 @@ function fmt(n,sym='₡'){
   return sym==='₡'?'₡'+Math.round(v).toLocaleString('es-CR'):'$'+v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
 }
 function fdate(s){if(!s)return'—';return new Date(s+'T12:00').toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'});}
-function loadLS(){try{const s=localStorage.getItem(LSK);if(!s)return DEF;const p=JSON.parse(s);return{...DEF,...p,cfg:{...DEF.cfg,...(p.cfg||{})}};}catch{return DEF;}}
+function loadLS(){try{const s=localStorage.getItem(LSK);if(!s)return DEF;const p=JSON.parse(s);return{...DEF,...p,pack:p.pack||[],cfg:{...DEF.cfg,...(p.cfg||{})}};}catch{return DEF;}}
+function packCost(packing,pack){return(packing||[]).reduce((t,pi)=>{const pk=pack.find(x=>x.id===pi.pid);return pk?t+(pk.price/(pk.qty||1))*(pi.qty||0):t;},0);}
+function cfgGastos(cfg){return(cfg.costos&&cfg.costos.length>0)?cfg.costos.reduce((s,c)=>s+(+c.monto||0),0):(cfg.gastos_fijos||0);}
 function saveLS(d){localStorage.setItem(LSK,JSON.stringify(d));}
 function loadFB(){try{const s=localStorage.getItem(LSF);return s?JSON.parse(s):null;}catch{return null;}}
 function recipeCost(r,ings){return(r.ing||[]).reduce((t,ri)=>{const i=ings.find(x=>x.id===ri.id);return i?t+(i.price/(i.qty||1))*(ri.qty||0):t;},0);}
@@ -226,7 +239,7 @@ function Toaster(){
   },[]);
   if(!items.length)return null;
   return(
-    <div style={{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',zIndex:200,display:'flex',flexDirection:'column',gap:8,pointerEvents:'none',alignItems:'center'}}>
+    <div style={{position:'fixed',top:'calc(env(safe-area-inset-top, 0px) + 70px)',left:'50%',transform:'translateX(-50%)',zIndex:200,display:'flex',flexDirection:'column',gap:8,pointerEvents:'none',alignItems:'center',width:'max-content',maxWidth:'calc(100vw - 32px)'}}>
       {items.map(t=>(
         <div key={t.id} className="toast" style={{padding:'11px 16px',borderRadius:10,fontWeight:600,fontSize:13.5,background:t.type==='err'?'#BE123C':'var(--forest)',color:'#fff',boxShadow:'0 4px 20px rgba(0,0,0,.25)',display:'flex',alignItems:'center',gap:8}}>
           {t.type==='err'?<Icon n='alert' s={15} c='#fff'/>:<Icon n='check' s={15} c='#fff'/>}{t.msg}
@@ -439,7 +452,7 @@ function Home({D,go}){
   const {sym}=D.cfg;
   const hoy=today(),mes=hoy.slice(0,7);
   const activos=D.ped.filter(p=>!['Entregado','Cancelado'].includes(p.estado));
-  const ing=D.ped.filter(p=>p.estado==='Entregado'&&(p.fecha||'').startsWith(mes)).reduce((s,p)=>s+(p.total||0),0);
+  const ing=D.ped.filter(p=>p.estado==='Entregado'&&(p.fecha_e||p.fecha||'').startsWith(mes)).reduce((s,p)=>s+(p.total||0),0);
   const cobros=D.ped.filter(p=>['Listo','Entregado'].includes(p.estado)&&(p.total||0)-(p.adelanto||0)>0.01);
   const prox=D.ped.filter(p=>p.fecha_e>=hoy&&p.estado!=='Cancelado').sort((a,b)=>a.fecha_e.localeCompare(b.fecha_e)).slice(0,5);
   const cl=id=>D.cli.find(c=>c.id===id);
@@ -504,23 +517,30 @@ function Ing({D,ops}){
   const [q,setQ]=useState('');
   const [modal,setModal]=useState(null);
   const [del,setDel]=useState(null);
+  const [tab,setTab]=useState('ing');
   const {sym}=D.cfg;
-  const list=useMemo(()=>D.ing.filter(i=>`${i.nombre} ${i.prov||''}`.toLowerCase().includes(q.toLowerCase())),[D.ing,q]);
-  const save=d=>{ops.ups('ing',d,modal?.id);setModal(null);toast(modal?.id?'Ingrediente actualizado':'Ingrediente agregado');};
+  const src=tab==='ing'?D.ing:D.pack;
+  const list=useMemo(()=>src.filter(i=>`${i.nombre} ${i.prov||''}`.toLowerCase().includes(q.toLowerCase())),[src,q]);
+  const label=tab==='ing'?'Ingrediente':'Empaque';
+  const save=d=>{ops.ups(tab,d,modal?.id);setModal(null);toast(modal?.id?`${label} actualizado`:`${label} agregado`);};
+  const tabs=[{id:'ing',l:`Ingredientes (${D.ing.length})`},{id:'pack',l:`Empaques (${D.pack.length})`}];
   return(
     <div className="pp" style={{maxWidth:960,margin:'0 auto'}}>
-      <PH title="Ingredientes" sub={`${D.ing.length} registrados`} action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>
-      <SB val={q} set={setQ} ph="Buscar ingrediente o proveedor..."/>
-      {list.length===0?<Empty icon={<Icon n="layers" s={26} c="var(--forest)"/>} title="Sin ingredientes" sub="Agregá tus harinas, levaduras, sal y más." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
-        <div className="card tbl" style={{overflow:'hidden'}}>
+      <PH title="Ingredientes & Empaques" action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>
+      <div style={{display:'flex',gap:6,marginBottom:16}}>
+        {tabs.map(t=><button key={t.id} onClick={()=>{setTab(t.id);setQ('');}} style={{padding:'7px 18px',borderRadius:10,border:`1.5px solid ${tab===t.id?'var(--forest)':'#E2E8D8'}`,background:tab===t.id?'var(--forest)':'#fff',color:tab===t.id?'#fff':'var(--olive)',fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'Instrument Sans,sans-serif'}}>{t.l}</button>)}
+      </div>
+      <SB val={q} set={setQ} ph={tab==='ing'?'Buscar ingrediente o proveedor...':'Buscar material de empaque...'}/>
+      {list.length===0?<Empty icon={<Icon n={tab==='ing'?'layers':'package'} s={26} c="var(--forest)"/>} title={`Sin ${tab==='ing'?'ingredientes':'empaques'}`} sub={tab==='ing'?'Agregá tus harinas, levaduras, sal y más.':'Agregá bolsas, stickers, etiquetas, cajas...'} action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
+        <div className="card tbl tbl-sticky" style={{overflow:'hidden'}}>
           <table>
-            <thead><tr><th>Ingrediente</th><th>Precio</th><th>Presentación</th><th>Costo/unidad</th><th>Proveedor</th><th></th></tr></thead>
+            <thead><tr><th>{label}</th><th>Precio pack</th><th>Cantidad</th><th>Costo/unidad</th><th>Proveedor</th><th></th></tr></thead>
             <tbody>{list.map(i=>(
               <tr key={i.id}>
                 <td style={{fontWeight:600}}>{i.nombre}</td>
                 <td>{fmt(i.price,sym)}</td>
                 <td style={{color:'var(--olive)',fontSize:13}}>{i.qty} {i.unit}</td>
-                <td style={{fontFamily:'monospace',fontSize:12}}>{fmt(i.price/(i.qty||1),sym)}/{i.unit}</td>
+                <td style={{fontFamily:'monospace',fontSize:12,fontWeight:600,color:'var(--forest)'}}>{fmt(i.price/(i.qty||1),sym)}/{i.unit}</td>
                 <td style={{color:'var(--olive)',fontSize:13}}>{i.prov||'—'}</td>
                 <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setModal(i)}><Icon n='edit' s={14}/></Btn><Btn v='g' sm onClick={()=>setDel(i)}><Icon n='trash' s={14}/></Btn></div></td>
               </tr>
@@ -528,18 +548,18 @@ function Ing({D,ops}){
           </table>
         </div>
       }
-      {modal!==null&&<IngModal ing={modal} onSave={save} onClose={()=>setModal(null)} sym={sym}/>}
-      {del&&<CDel what={del.nombre} onOk={()=>{ops.del('ing',del.id);setDel(null);toast('Ingrediente eliminado','err');}} onNo={()=>setDel(null)}/>}
+      {modal!==null&&<IngModal ing={modal} onSave={save} onClose={()=>setModal(null)} sym={sym} label={label}/>}
+      {del&&<CDel what={del.nombre} onOk={()=>{ops.del(tab,del.id);setDel(null);toast(`${label} eliminado`,'err');}} onNo={()=>setDel(null)}/>}
     </div>
   );
 }
-function IngModal({ing,onSave,onClose,sym}){
-  const[f,sf]=useState({nombre:'',price:'',qty:'1',unit:'kg',prov:'',notes:'',...ing});
+function IngModal({ing,onSave,onClose,sym,label='Ingrediente'}){
+  const[f,sf]=useState({nombre:'',price:'',qty:'1',unit:label==='Empaque'?'pz':'kg',prov:'',notes:'',...ing});
   const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
   const cu=f.price&&f.qty?(+f.price/+f.qty):0;
   return(
-    <Modal title={ing.id?'Editar ingrediente':'Nuevo ingrediente'} onClose={onClose}>
-      <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder="Ej: Harina de trigo"/>
+    <Modal title={ing.id?`Editar ${label.toLowerCase()}`:`Nuevo ${label.toLowerCase()}`} onClose={onClose}>
+      <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder={label==='Empaque'?'Ej: Bolsa Kraft grande':'Ej: Harina de trigo'}/>
       <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
         <FI label="Precio de compra" type="number" step="1" value={f.price} onChange={s('price')} placeholder="0"/>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
@@ -575,10 +595,17 @@ function Rec({D,ops}){
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
           {list.map(r=>{
             const costo=recipeCost(r,D.ing);
+            const usadaEn=D.prod.filter(p=>(p.recs||[]).some(rc=>rc.rid===r.id)).length;
             return(
               <div key={r.id} className="card" style={{padding:20}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
-                  <div><div style={{fontWeight:600,fontSize:15}}>{r.nombre}</div>{r.cat&&<span className="badge bg" style={{marginTop:4,fontSize:11}}>{r.cat}</span>}</div>
+                  <div>
+                    <div style={{fontWeight:600,fontSize:15}}>{r.nombre}</div>
+                    <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:4}}>
+                      {r.cat&&<span className="badge bg" style={{fontSize:11}}>{r.cat}</span>}
+                      {usadaEn>0?<span className="badge bc" style={{fontSize:11}}>📦 {usadaEn} producto{usadaEn!==1?'s':''}</span>:<span className="badge" style={{fontSize:11,background:'#F5F5F5',color:'#aaa'}}>Sin productos</span>}
+                    </div>
+                  </div>
                   <div style={{display:'flex',gap:4}}>
                     <Btn v='g' sm onClick={()=>setBas(r)} title='Báscula'><Icon n='scale' s={14}/></Btn>
                     <Btn v='g' sm onClick={()=>setModal(r)}><Icon n='edit' s={14}/></Btn>
@@ -602,6 +629,7 @@ function Rec({D,ops}){
       {modal!==null&&<RecModal rec={modal} ings={D.ing} ops={ops} onSave={save} onClose={()=>setModal(null)} sym={sym}/>}
       {bas&&<BascModal rec={bas} ings={D.ing} sym={sym} onClose={()=>setBas(null)}/>}
       {del&&<CDel what={del.nombre} onOk={()=>{ops.del('rec',del.id);setDel(null);toast('Receta eliminada','err');}} onNo={()=>setDel(null)}/>}
+      <button className="fab" onClick={()=>setModal({})} title="Nueva receta"><Icon n='plus' s={24} c='#fff'/></button>
     </div>
   );
 }
@@ -611,7 +639,7 @@ function RecModal({rec,ings,ops,onSave,onClose,sym}){
   const[ni,sni]=useState({id:'',qty:''});
   const[nig,setNig]=useState(null);
   const saveNewIng=()=>{if(!nig?.nombre?.trim()||!nig.qty)return;const nid=uid();const newI={id:nid,nombre:nig.nombre.trim(),price:+(nig.price||0),qty:+(nig.qty||1),unit:nig.unit||'g',prov:'',notes:''};ops.ups('ing',newI);sni({id:nid,qty:''});setNig(null);toast('Ingrediente creado');};
-  const add=()=>{if(!ni.id||!ni.qty)return;sf(p=>({...p,ing:[...p.ing,{...ni,key:uid()}]}));sni({id:'',qty:''}); };
+  const add=()=>{if(!ni.id||!ni.qty)return;if(f.ing.some(x=>x.id===ni.id)){toast('Ese ingrediente ya está en la receta','err');return;}sf(p=>({...p,ing:[...p.ing,{...ni,key:uid()}]}));sni({id:'',qty:''});};
   const costo=f.ing.reduce((t,ri)=>{const i=ings.find(x=>x.id===ri.id);return i?t+(i.price/(i.qty||1))*(ri.qty||0):t;},0);
   return(
     <Modal title={rec.id?'Editar receta':'Nueva receta'} onClose={onClose} wide>
@@ -731,15 +759,19 @@ function Calc({D,ops}){
       <PH title="Calculadora de Precios" sub={`${D.prod.length} productos`} action={<Btn onClick={()=>setModal({})}>+ Nuevo producto</Btn>}/>
       <SB val={q} set={setQ} ph="Buscar producto..."/>
       {list.length===0?<Empty icon={<Icon n="calc" s={26} c="var(--forest)"/>} title="Sin productos" sub="Calculá el precio de venta de tus panes." action={<Btn onClick={()=>setModal({})}>+ Crear producto</Btn>}/>:
-        <div className="card tbl" style={{overflow:'hidden'}}>
+        <div className="card tbl tbl-sticky" style={{overflow:'hidden'}}>
           <table>
             <thead><tr><th>Producto</th><th>SKU</th><th>Costo real</th><th>Precio venta</th><th>Ganancia</th><th>₡/hora</th><th></th></tr></thead>
             <tbody>{list.map(p=>{
               const gan=p.price-(p.cost||0);
               const pct=p.cost>0?Math.round(gan/p.price*100):null;
               const xhora=(p.tiempo&&p.tiempo>0)?Math.round(gan/(p.tiempo/60)):null;
+              const sinRec=!(p.recs&&p.recs.length>0);
               return <tr key={p.id}>
-                <td style={{fontWeight:600}}>{p.nombre}</td>
+                <td>
+                  <div style={{fontWeight:600}}>{p.nombre}</div>
+                  {sinRec&&<div style={{fontSize:11,color:'#92400E',marginTop:2}}>⚠️ Sin receta vinculada</div>}
+                </td>
                 <td style={{fontSize:12,fontFamily:'monospace',color:'var(--olive)'}}>{p.sku||'—'}</td>
                 <td>{fmt(p.cost||0,sym)}</td>
                 <td style={{fontWeight:700,color:'var(--forest)'}}>{fmt(p.price||0,sym)}</td>
@@ -753,25 +785,30 @@ function Calc({D,ops}){
       }
       {modal!==null&&<ProdModal prod={modal} D={D} onSave={save} onClose={()=>setModal(null)}/>}
       {del&&<CDel what={del.nombre} onOk={()=>{ops.del('prod',del.id);setDel(null);toast('Producto eliminado','err');}} onNo={()=>setDel(null)}/>}
+      <button className="fab" onClick={()=>setModal({})} title="Nuevo producto"><Icon n='plus' s={24} c='#fff'/></button>
     </div>
   );
 }
 function ProdModal({prod,D,onSave,onClose}){
   const {sym}=D.cfg;
-  const[f,sf]=useState({nombre:'',sku:'',recs:[],extras:0,tiempo:0,waste:5,ut_type:'fixed',ut:0,ship:0,comm:0,notes:'',...prod});
+  const[f,sf]=useState({nombre:'',sku:'',recs:[],packing:[],extras:0,tiempo:0,waste:5,ut_type:'fixed',ut:0,ship:0,comm:0,notes:'',...prod,recs:(prod.recs||[]).map(r=>({...r,key:r.key||uid()})),packing:(prod.packing||[]).map(p=>({...p,key:p.key||uid()}))});
   const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
   const n=k=>e=>sf(p=>({...p,[k]:parseFloat(e.target.value)||0}));
   const[nr,snr]=useState({rid:'',t:1});
+  const[np,snp]=useState({pid:'',qty:1});
   const addR=()=>{if(!nr.rid)return;sf(p=>({...p,recs:[...p.recs,{...nr,key:uid()}]}));snr({rid:'',t:1});};
+  const addP=()=>{if(!np.pid)return;sf(p=>({...p,packing:[...p.packing,{pid:np.pid,qty:+np.qty||1,key:uid()}]}));snp({pid:'',qty:1});};
   const rcost=f.recs.reduce((t,rc)=>{const r=D.rec.find(x=>x.id===rc.rid);return r?t+recipeCost(r,D.ing)*(rc.t||1):t;},0);
-  const gi_hora=(D.cfg.gastos_fijos||0)/(D.cfg.horas_mes||60);
+  const pcost=packCost(f.packing,D.pack);
+  const gi_hora=cfgGastos(D.cfg)/(D.cfg.horas_mes||60);
   const gi_prod=gi_hora*((+f.tiempo||0)/60);
-  const base=rcost+(+f.extras)+gi_prod;
+  const base=rcost+pcost+(+f.extras||0)+gi_prod;
   const withWaste=base*(1+(+f.waste||0)/100);
   const utAmt=f.ut_type==='pct'?withWaste*(+f.ut/100):(+f.ut);
-  const final=withWaste+utAmt+(+f.ship)+withWaste*((+f.comm)/100);
+  const final=withWaste+utAmt+(+f.ship);
   const ganancia=final-withWaste;
   const ingreso_hora=(+f.tiempo)>0?ganancia/((+f.tiempo)/60):null;
+  const xRow=([l,v])=>v>0&&<div key={l} style={{display:'flex',justifyContent:'space-between',color:'var(--forest)'}}><span>{l}</span><span>{fmt(v,sym)}</span></div>;
   return(
     <Modal title={prod.id?'Editar producto':'Nuevo producto'} onClose={onClose} wide>
       <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:12}}>
@@ -788,15 +825,27 @@ function ProdModal({prod,D,onSave,onClose}){
         })}</tbody></table>
       </div>}
       <div style={{display:'flex',gap:8,marginBottom:16}}>
-        <select value={nr.rid} onChange={e=>snr(p=>({...p,rid:e.target.value}))} style={{flex:1}}>
-          <option value="">Agregar receta...</option>
-          {D.rec.map(r=><option key={r.id} value={r.id}>{r.nombre}</option>)}
-        </select>
+        <select value={nr.rid} onChange={e=>snr(p=>({...p,rid:e.target.value}))} style={{flex:1}}><option value="">Agregar receta...</option>{D.rec.map(r=><option key={r.id} value={r.id}>{r.nombre}</option>)}</select>
         <input type="number" min=".5" step=".5" placeholder="Tandas" value={nr.t} onChange={e=>snr(p=>({...p,t:+e.target.value||1}))} style={{width:80}}/>
         <Btn onClick={addR} disabled={!nr.rid}>+</Btn>
       </div>
+      <label>Empaque</label>
+      {f.packing.length>0&&<div style={{border:'1px solid #EEF0E8',borderRadius:10,overflow:'hidden',marginBottom:8}}>
+        <table><thead><tr><th>Material</th><th style={{textAlign:'center'}}>Cant.</th><th>Costo</th><th></th></tr></thead>
+        <tbody>{f.packing.map(pi=>{
+          const pk=D.pack.find(x=>x.id===pi.pid);
+          const c=pk?(pk.price/(pk.qty||1))*(pi.qty||0):0;
+          return <tr key={pi.key}><td>{pk?.nombre||'—'}</td><td style={{textAlign:'center',fontSize:13}}>{pi.qty}</td><td style={{color:'var(--forest)'}}>{fmt(c,sym)}</td><td><button onClick={()=>sf(p=>({...p,packing:p.packing.filter(x=>x.key!==pi.key)}))} style={{border:'none',background:'none',cursor:'pointer',color:'#ccc'}} onMouseEnter={e=>e.target.style.color='#e00'} onMouseLeave={e=>e.target.style.color='#ccc'}>✕</button></td></tr>;
+        })}</tbody></table>
+      </div>}
+      <div style={{display:'flex',gap:8,marginBottom:8}}>
+        <select value={np.pid} onChange={e=>snp(p=>({...p,pid:e.target.value}))} style={{flex:1}}><option value="">Agregar material...</option>{D.pack.map(pk=><option key={pk.id} value={pk.id}>{pk.nombre} — {fmt(pk.price/(pk.qty||1),sym)}/pz</option>)}</select>
+        <input type="number" min=".5" step=".5" placeholder="Cant." value={np.qty} onChange={e=>snp(p=>({...p,qty:+e.target.value||1}))} style={{width:68}}/>
+        <Btn onClick={addP} disabled={!np.pid}>+</Btn>
+      </div>
+      {D.pack.length===0&&<p style={{fontSize:12,color:'var(--olive)',marginBottom:12}}>Agregá materiales en <strong>Ingredientes → Empaques</strong> para usarlos aquí.</p>}
       <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
-        <FI label="Empaque (₡)" type="number" value={f.extras} onChange={n('extras')} placeholder="Bolsa + sticker"/>
+        <FI label="Otros extras (₡)" type="number" value={f.extras||0} onChange={n('extras')} placeholder="Costos adicionales"/>
         <FI label="Tiempo activo (min)" type="number" value={f.tiempo||0} onChange={n('tiempo')} placeholder="Minutos de trabajo activo"/>
         <FI label="Merma (%)" type="number" step=".5" value={f.waste} onChange={n('waste')}/>
       </div>
@@ -810,22 +859,17 @@ function ProdModal({prod,D,onSave,onClose}){
         <FI label="Envío / comisión" type="number" value={f.ship} onChange={n('ship')}/>
       </div>
       <div style={{background:'#F0F7E8',borderRadius:12,padding:16,marginBottom:16}}>
-        <h3 className="serif" style={{fontSize:16,color:'var(--forest)',marginBottom:12}}>Resumen</h3>
+        <h3 className="serif" style={{fontSize:16,color:'var(--forest)',marginBottom:12}}>Resumen de costos</h3>
         <div style={{display:'flex',flexDirection:'column',gap:6,fontSize:13.5}}>
-          {[['Ingredientes',rcost],[`Empaque`,+f.extras],['Gastos fijos dist.',gi_prod]].map(([l,v])=>v>0&&<div key={l} style={{display:'flex',justifyContent:'space-between',color:'var(--forest)'}}><span>{l}</span><span>{fmt(v,sym)}</span></div>)}
+          {[['Ingredientes',rcost],['Empaque',pcost],['Otros extras',+f.extras||0],['Gastos fijos dist.',gi_prod]].map(xRow)}
           <div style={{display:'flex',justifyContent:'space-between',fontWeight:600,paddingTop:6,borderTop:'1px solid rgba(52,82,42,.2)',color:'var(--forest)'}}><span>Subtotal</span><span>{fmt(base,sym)}</span></div>
-          {f.waste>0&&<div style={{display:'flex',justifyContent:'space-between',color:'var(--olive)'}}><span>+ Merma ({f.waste}%)</span><span>{fmt(withWaste-base,sym)}</span></div>}
+          {(+f.waste||0)>0&&<div style={{display:'flex',justifyContent:'space-between',color:'var(--olive)'}}><span>+ Merma ({f.waste}%)</span><span>{fmt(withWaste-base,sym)}</span></div>}
           <div style={{display:'flex',justifyContent:'space-between',fontWeight:700,paddingTop:6,borderTop:'1px solid rgba(52,82,42,.2)',color:'var(--forest)'}}><span>Costo real</span><span>{fmt(withWaste,sym)}</span></div>
           <div style={{display:'flex',justifyContent:'space-between',color:'#2D6A4F'}}><span>Precio de venta</span><span>{fmt(final,sym)}</span></div>
           <div style={{display:'flex',justifyContent:'space-between',color:'#2D6A4F',fontWeight:600}}><span>Ganancia neta</span><span>{fmt(ganancia,sym)}</span></div>
-          {ingreso_hora!=null&&<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,borderTop:'2px solid var(--forest)',marginTop:4}}>
-            <span style={{fontWeight:700,fontSize:15,color:'var(--forest)'}}>₡ por hora activa</span>
-            <span className="serif" style={{fontSize:26,fontWeight:700,color:'var(--forest)'}}>{fmt(ingreso_hora,sym)}</span>
-          </div>}
-          {ingreso_hora==null&&<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,borderTop:'2px solid var(--forest)',marginTop:4}}>
-            <span style={{fontWeight:700,fontSize:15,color:'var(--forest)'}}>Precio de venta</span>
-            <span className="serif" style={{fontSize:26,fontWeight:700,color:'var(--forest)'}}>{fmt(final,sym)}</span>
-          </div>}
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,borderTop:'2px solid var(--forest)',marginTop:4}}>
+            {ingreso_hora!=null?<><span style={{fontWeight:700,fontSize:15,color:'var(--forest)'}}>₡ por hora activa</span><span className="serif" style={{fontSize:26,fontWeight:700,color:'var(--forest)'}}>{fmt(ingreso_hora,sym)}</span></>:<><span style={{fontWeight:700,fontSize:15,color:'var(--forest)'}}>Precio de venta</span><span className="serif" style={{fontSize:26,fontWeight:700,color:'var(--forest)'}}>{fmt(final,sym)}</span></>}
+          </div>
         </div>
       </div>
       <div style={{display:'flex',gap:12,justifyContent:'flex-end',marginTop:8}}>
@@ -885,7 +929,7 @@ function Cli({D,ops}){
       <PH title="Clientes" sub={`${D.cli.length} clientes`} action={<Btn onClick={()=>setModal({})}>+ Nuevo cliente</Btn>}/>
       <SB val={q} set={setQ} ph="Buscar por nombre o teléfono..."/>
       {list.length===0?<Empty icon={<Icon n="users" s={26} c="var(--forest)"/>} title="Sin clientes" sub="Agregá tus clientes para llevar su historial." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
-        <div className="card tbl" style={{overflow:'hidden'}}>
+        <div className="card tbl tbl-sticky" style={{overflow:'hidden'}}>
           <table><thead><tr><th>Cliente</th><th>Teléfono</th><th>Pedidos</th><th>Total gastado</th><th></th></tr></thead>
           <tbody>{list.map(c=>{
             const peds=D.ped.filter(p=>p.cli_id===c.id);
@@ -902,6 +946,7 @@ function Cli({D,ops}){
       }
       {modal!==null&&<CliModal c={modal} onSave={save} onClose={()=>setModal(null)}/>}
       {del&&<CDel what={del.nombre} onOk={()=>{ops.del('cli',del.id);setDel(null);toast('Cliente eliminado','err');}} onNo={()=>setDel(null)}/>}
+      <button className="fab" onClick={()=>setModal({})} title="Nuevo cliente"><Icon n='plus' s={24} c='#fff'/></button>
     </div>
   );
 }
@@ -939,7 +984,10 @@ function Ped({D,ops}){
   const cl=id=>D.cli.find(c=>c.id===id);
   function nota(p){
     const c=cl(p.cli_id);const saldo=(p.total||0)-(p.adelanto||0);
-    const html=`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px"><div style="text-align:center;border-bottom:2px solid #34522A;padding-bottom:20px;margin-bottom:20px"><div style="font-family:serif;font-size:34px;font-style:italic;color:#34522A">sensa</div><div style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#818A6D">Panetteria</div>${D.cfg.dir?`<div style="font-size:12px;color:#818A6D;margin-top:4px">${esc(D.cfg.dir)}</div>`:''}</div><h2 style="color:#34522A;margin:0 0 16px">Nota de Venta #${p.id.slice(-6).toUpperCase()}</h2><p><strong>Cliente:</strong> ${c?.nombre||'—'}</p>${c?.tel?`<p><strong>Tel:</strong> ${c.tel}</p>`:''}<p><strong>Entrega:</strong> ${fdate(p.fecha_e)}</p><div style="background:#F5F6EF;padding:12px;border-radius:8px;margin:16px 0">${esc(p.desc||'Sin descripción')}</div><table style="width:100%;border-collapse:collapse"><tr style="border-top:2px solid #34522A;border-bottom:1px solid #eee"><td style="padding:10px 0;font-weight:bold">Total</td><td style="text-align:right;font-size:24px;font-weight:bold;color:#34522A;font-family:serif">${fmt(p.total||0,sym)}</td></tr>${(p.adelanto||0)>0?`<tr style="border-bottom:1px solid #eee"><td style="padding:8px 0">Adelanto</td><td style="text-align:right;color:#2D6A4F">-${fmt(p.adelanto,sym)}</td></tr>`:''}${saldo>0.01?`<tr><td style="padding:8px 0;font-weight:bold">Saldo pendiente</td><td style="text-align:right;color:#BE123C;font-weight:bold">${fmt(saldo,sym)}</td></tr>`:'<tr><td style="padding:8px 0;color:#2D6A4F" colspan="2">✓ Pagado completamente</td></tr>'}</table>${p.notes?`<p style="color:#818A6D;font-size:13px;font-style:italic;margin-top:16px">${esc(p.notes)}</p>`:''}<p style="text-align:center;color:#DAE38E;margin-top:32px;font-weight:700">¡Gracias por su preferencia!</p></div>`;
+    const itemsHtml=(p.items&&p.items.length>0)
+      ?`<table style="width:100%;border-collapse:collapse;margin:12px 0">${p.items.map(it=>{const prod=D.prod.find(x=>x.id===it.pid);return`<tr style="border-bottom:1px solid #eee"><td style="padding:7px 0">${esc(prod?.nombre||'?')}</td><td style="text-align:center;color:#818A6D;padding:7px 8px">×${it.qty}</td><td style="text-align:right;padding:7px 0;font-weight:600;color:#34522A">${fmt((+it.qty||1)*(+it.price||0),sym)}</td></tr>`;}).join('')}</table>`
+      :`<div style="background:#F5F6EF;padding:12px;border-radius:8px;margin:16px 0">${esc(p.desc||'Sin descripción')}</div>`;
+    const html=`<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px"><div style="text-align:center;border-bottom:2px solid #34522A;padding-bottom:20px;margin-bottom:20px"><div style="font-family:serif;font-size:34px;font-style:italic;color:#34522A">sensa</div><div style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#818A6D">Panetteria</div>${D.cfg.dir?`<div style="font-size:12px;color:#818A6D;margin-top:4px">${esc(D.cfg.dir)}</div>`:''}</div><h2 style="color:#34522A;margin:0 0 16px">Nota de Venta #${p.id.slice(-6).toUpperCase()}</h2><p><strong>Cliente:</strong> ${c?.nombre||'—'}</p>${c?.tel?`<p><strong>Tel:</strong> ${c.tel}</p>`:''}<p><strong>Entrega:</strong> ${fdate(p.fecha_e)}</p>${itemsHtml}${p.desc&&(p.items&&p.items.length>0)?`<p style="color:#818A6D;font-size:13px;margin:8px 0">${esc(p.desc)}</p>`:''}<table style="width:100%;border-collapse:collapse;margin-top:8px"><tr style="border-top:2px solid #34522A;border-bottom:1px solid #eee"><td style="padding:10px 0;font-weight:bold">Total</td><td style="text-align:right;font-size:24px;font-weight:bold;color:#34522A;font-family:serif">${fmt(p.total||0,sym)}</td></tr>${(p.adelanto||0)>0?`<tr style="border-bottom:1px solid #eee"><td style="padding:8px 0">Adelanto</td><td style="text-align:right;color:#2D6A4F">-${fmt(p.adelanto,sym)}</td></tr>`:''}${saldo>0.01?`<tr><td style="padding:8px 0;font-weight:bold">Saldo pendiente</td><td style="text-align:right;color:#BE123C;font-weight:bold">${fmt(saldo,sym)}</td></tr>`:'<tr><td style="padding:8px 0;color:#2D6A4F" colspan="2">✓ Pagado completamente</td></tr>'}</table>${p.notes?`<p style="color:#818A6D;font-size:13px;font-style:italic;margin-top:16px">${esc(p.notes)}</p>`:''}<p style="text-align:center;color:#34522A;margin-top:32px;font-weight:700">¡Gracias por su preferencia!</p></div>`;
     document.getElementById('pa').innerHTML=html;window.print();
   }
   return(
@@ -950,7 +998,7 @@ function Ped({D,ops}){
       </div>
       <SB val={q} set={setQ} ph="Buscar por cliente o descripción..."/>
       {list.length===0?<Empty icon={<Icon n="package" s={26} c="var(--forest)"/>} title="Sin pedidos" sub="Registrá tus pedidos para controlar entregas y cobros." action={<Btn onClick={()=>setModal({})}>+ Registrar</Btn>}/>:
-        <div className="card tbl" style={{overflow:'hidden'}}>
+        <div className="card tbl tbl-sticky" style={{overflow:'hidden'}}>
           <table><thead><tr><th>Cliente</th><th>Descripción</th><th>Entrega</th><th>Total</th><th>Saldo</th><th>Estado</th><th></th></tr></thead>
           <tbody>{list.map(p=>{
             const saldo=(p.total||0)-(p.adelanto||0);
@@ -960,7 +1008,11 @@ function Ped({D,ops}){
               <td>{fdate(p.fecha_e)}</td>
               <td style={{fontWeight:700}}>{fmt(p.total||0,sym)}</td>
               <td style={{fontWeight:saldo>0.01?700:400,color:saldo>0.01?'#BE123C':'#ccc'}}>{saldo>0.01?fmt(saldo,sym):'✓'}</td>
-              <td><span className={`badge ${BADGE_E[p.estado]||'bc'}`}>{p.estado}</span></td>
+              <td>
+                <select value={p.estado} onChange={e=>{const np={...p,estado:e.target.value};ops.ups('ped',np,p.id);}} className={`badge ${BADGE_E[p.estado]||'bc'}`} style={{border:'none',cursor:'pointer',fontFamily:'Instrument Sans,sans-serif',outline:'none',appearance:'auto',padding:'2px 9px'}} onClick={e=>e.stopPropagation()}>
+                  {ESTADOS.map(e=><option key={e} value={e}>{e}</option>)}
+                </select>
+              </td>
               <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>nota(p)} title='Nota'><Icon n='print' s={14}/></Btn><Btn v='g' sm onClick={()=>setModal(p)}><Icon n='edit' s={14}/></Btn><Btn v='g' sm onClick={()=>setDel(p)}><Icon n='trash' s={14}/></Btn></div></td>
             </tr>;
           })}</tbody></table>
@@ -968,16 +1020,33 @@ function Ped({D,ops}){
       }
       {modal!==null&&<PedModal ped={modal} D={D} ops={ops} onSave={save} onClose={()=>setModal(null)}/>}
       {del&&<CDel what={`pedido de ${cl(del.cli_id)?.nombre||'cliente'}`} onOk={()=>{ops.del('ped',del.id);setDel(null);toast('Pedido eliminado','err');}} onNo={()=>setDel(null)}/>}
+      <button className="fab" onClick={()=>setModal({})} title="Nuevo pedido"><Icon n='plus' s={24} c='#fff'/></button>
     </div>
   );
 }
 function PedModal({ped,D,ops,onSave,onClose}){
   const {sym}=D.cfg;
-  const[f,sf]=useState({cli_id:'',fecha:today(),fecha_e:'',desc:'',notes:'',total:'',adelanto:'',estado:'Cotización',...ped});
+  const[f,sf]=useState({cli_id:'',fecha:today(),fecha_e:'',desc:'',notes:'',total:'',adelanto:'',estado:'Cotización',items:[],...ped,items:(ped.items||[]).map(i=>({...i,key:i.key||uid()}))});
   const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
   const saldo=(+f.total||0)-(+f.adelanto||0);
   const[nc,setNc]=useState(null);
+  const[ni,sni]=useState({pid:'',qty:1});
   const saveNewCli=()=>{if(!nc?.nombre?.trim())return;const nid=uid();ops.ups('cli',{id:nid,nombre:nc.nombre.trim(),tel:nc.tel||'',email:nc.email||'',notes:''});sf(p=>({...p,cli_id:nid}));setNc(null);toast('Cliente creado');};
+  function recalc(items){
+    const tot=Math.round(items.reduce((t,i)=>t+(+i.qty||1)*(+i.price||0),0));
+    const desc=items.map(i=>{const p=D.prod.find(x=>x.id===i.pid);return`${i.qty}x ${p?.nombre||'?'}`;}).join(', ');
+    sf(p=>({...p,items,total:tot,desc}));
+  }
+  function addItem(){
+    if(!ni.pid)return;
+    const prod=D.prod.find(p=>p.id===ni.pid);
+    if(!prod)return;
+    recalc([...f.items,{pid:ni.pid,qty:+ni.qty||1,price:prod.price,key:uid()}]);
+    sni({pid:'',qty:1});
+  }
+  function updQty(key,qty){recalc(f.items.map(i=>i.key===key?{...i,qty:+qty||1}:i));}
+  function remItem(key){recalc(f.items.filter(i=>i.key!==key));}
+  const itemsTotal=f.items.reduce((t,i)=>t+(+i.qty||1)*(+i.price||0),0);
   return(
     <Modal title={ped.id?'Editar pedido':'Nuevo pedido'} onClose={onClose} wide>
       <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
@@ -1001,15 +1070,44 @@ function PedModal({ped,D,ops,onSave,onClose}){
       </div>
       <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
         <FI label="Fecha de pedido" type="date" value={f.fecha} onChange={s('fecha')}/>
-        <FI label="Fecha de entrega" type="date" value={f.fecha_e||''} onChange={s('fecha_e')}/>
+        <FI label="Fecha de entrega *" type="date" value={f.fecha_e||''} onChange={s('fecha_e')}/>
       </div>
-      <FT label="Descripción *" value={f.desc||''} onChange={s('desc')} placeholder="Ej: 2 hogazas masa madre 700g + 1 baguette"/>
+      {!f.fecha_e&&<div style={{background:'#FEF9C3',border:'1px solid #FDE68A',borderRadius:9,padding:'8px 14px',fontSize:12.5,color:'#92400E',marginBottom:12,display:'flex',alignItems:'center',gap:8}}><Icon n='alert' s={14} c='#92400E'/>Sin fecha de entrega — no aparecerá en el calendario</div>}
+      <label>Productos del pedido</label>
+      {f.items.length>0&&<div style={{border:'1px solid #EEF0E8',borderRadius:10,overflow:'hidden',marginBottom:8}}>
+        <table><thead><tr><th>Producto</th><th style={{textAlign:'center'}}>Cant.</th><th>Precio unit.</th><th>Subtotal</th><th></th></tr></thead>
+        <tbody>{f.items.map(it=>{
+          const prod=D.prod.find(x=>x.id===it.pid);
+          return <tr key={it.key}>
+            <td style={{fontWeight:500}}>{prod?.nombre||'—'}{prod?.sku&&<span style={{fontSize:11,color:'var(--olive)',marginLeft:6,fontFamily:'monospace'}}>{prod.sku}</span>}</td>
+            <td style={{width:64,textAlign:'center'}}><input type="number" min="1" step="1" value={it.qty} onChange={e=>updQty(it.key,e.target.value)} style={{width:52,padding:'4px 6px',fontSize:13,textAlign:'center',borderRadius:7,border:'1.5px solid #E0E8D4',outline:'none'}}/></td>
+            <td style={{fontSize:13,color:'var(--olive)'}}>{fmt(it.price,sym)}</td>
+            <td style={{fontWeight:700,color:'var(--forest)'}}>{fmt((+it.qty||1)*(+it.price||0),sym)}</td>
+            <td><button onClick={()=>remItem(it.key)} style={{border:'none',background:'none',cursor:'pointer',color:'#ccc',fontSize:14,padding:'0 4px'}} onMouseEnter={e=>e.target.style.color='#e00'} onMouseLeave={e=>e.target.style.color='#ccc'}>✕</button></td>
+          </tr>;
+        })}</tbody></table>
+        <div style={{padding:'10px 16px',borderTop:'1px solid #EEF0E8',display:'flex',justifyContent:'space-between',fontWeight:700,color:'var(--forest)',fontSize:13.5,background:'#F9FBF5'}}>
+          <span>Total</span><span>{fmt(itemsTotal,sym)}</span>
+        </div>
+      </div>}
+      <div style={{display:'flex',gap:8,marginBottom:16}}>
+        <select value={ni.pid} onChange={e=>sni(p=>({...p,pid:e.target.value}))} style={{flex:1}}>
+          <option value="">Agregar producto...</option>
+          {D.prod.map(p=><option key={p.id} value={p.id}>{p.nombre}{p.sku?` (${p.sku})`:''} — {fmt(p.price,sym)}</option>)}
+        </select>
+        <input type="number" min="1" step="1" placeholder="Cant." value={ni.qty} onChange={e=>sni(p=>({...p,qty:+e.target.value||1}))} style={{width:68}}/>
+        <Btn onClick={addItem} disabled={!ni.pid}>+</Btn>
+      </div>
+      <div className="field">
+        <label>Descripción del pedido <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'#aaa',fontSize:10}}>(se autorrellena al agregar productos)</span></label>
+        <textarea rows={2} style={{resize:'none'}} value={f.desc||''} onChange={s('desc')} placeholder="1x Hogaza, 2x Bollitos… o escribí a mano"/>
+      </div>
       <div className="g3" style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
         <FI label={`Total (${sym})`} type="number" step="50" value={f.total||''} onChange={s('total')}/>
         <FI label={`Adelanto (${sym})`} type="number" step="50" value={f.adelanto||''} onChange={s('adelanto')}/>
         <F label="Saldo pendiente"><div style={{padding:'9px 12px',borderRadius:9,fontWeight:700,fontSize:15,background:saldo>0.01?'#FFF1F2':'#F0FDF4',color:saldo>0.01?'#BE123C':'#2D6A4F'}}>{saldo>0.01?fmt(saldo,sym):'✓ Pagado'}</div></F>
       </div>
-      <FT label="Notas" value={f.notes||''} onChange={s('notes')} placeholder="Instrucciones, observaciones..."/>
+      <FT label="Notas internas" value={f.notes||''} onChange={s('notes')} placeholder="Instrucciones de producción, observaciones…"/>
       <div style={{display:'flex',gap:12,justifyContent:'flex-end',marginTop:8}}>
         <Btn v='s' onClick={onClose}>Cancelar</Btn>
         <Btn onClick={()=>f.cli_id&&onSave(f)} disabled={!f.cli_id}>Guardar</Btn>
@@ -1021,8 +1119,20 @@ function PedModal({ped,D,ops,onSave,onClose}){
 // ── CALENDARIO ────────────────────────────────────────────────────────────
 function CalDayModal({day,peds,cli,sym,onClose}){
   const cl=id=>cli.find(c=>c.id===id);
+  const totalDia=peds.reduce((s,p)=>s+(p.total||0),0);
+  const saldoDia=peds.reduce((s,p)=>s+Math.max(0,(p.total||0)-(p.adelanto||0)),0);
   return(
     <Modal title={`Pedidos — ${fdate(day)}`} onClose={onClose}>
+      {peds.length>1&&<div style={{display:'flex',gap:12,marginBottom:16}}>
+        <div style={{flex:1,background:'#F0F7E8',borderRadius:10,padding:'10px 14px',textAlign:'center'}}>
+          <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'.05em',color:'var(--olive)',marginBottom:3}}>Total del día</div>
+          <div style={{fontWeight:700,fontSize:16,color:'var(--forest)'}}>{fmt(totalDia,sym)}</div>
+        </div>
+        {saldoDia>0.01&&<div style={{flex:1,background:'#FFF1F2',borderRadius:10,padding:'10px 14px',textAlign:'center'}}>
+          <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'.05em',color:'#BE123C',marginBottom:3}}>Saldo pendiente</div>
+          <div style={{fontWeight:700,fontSize:16,color:'#BE123C'}}>{fmt(saldoDia,sym)}</div>
+        </div>}
+      </div>}
       {peds.map(p=>(
         <div key={p.id} style={{border:'1px solid #EEF0E8',borderRadius:10,padding:16,marginBottom:12}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
@@ -1090,12 +1200,13 @@ function Rep({D}){
   const {sym}=D.cfg;
   const [desde,setDesde]=useState(()=>{const d=new Date();d.setDate(1);return d.toISOString().split('T')[0];});
   const [hasta,setHasta]=useState(today);
-  const peds=useMemo(()=>D.ped.filter(p=>p.estado==='Entregado'&&(p.fecha||'')>=desde&&(p.fecha||'')<=hasta),[D.ped,desde,hasta]);
+  const peds=useMemo(()=>D.ped.filter(p=>p.estado==='Entregado'&&(p.fecha_e||p.fecha||'')>=desde&&(p.fecha_e||p.fecha||'')<=hasta),[D.ped,desde,hasta]);
   const total=peds.reduce((s,p)=>s+(p.total||0),0);
   const ticket=peds.length?total/peds.length:0;
   const nclients=new Set(peds.map(p=>p.cli_id)).size;
-  const byDay=useMemo(()=>{const m={};peds.forEach(p=>{m[p.fecha]=(m[p.fecha]||0)+(p.total||0);});return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0]));},[ peds]);
+  const byDay=useMemo(()=>{const m={};peds.forEach(p=>{const k=p.fecha_e||p.fecha||'';m[k]=(m[k]||0)+(p.total||0);});return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0]));},[ peds]);
   const topCli=useMemo(()=>{const m={};peds.forEach(p=>{if(!m[p.cli_id])m[p.cli_id]={n:0,t:0};m[p.cli_id].n++;m[p.cli_id].t+=p.total||0;});return Object.entries(m).map(([id,v])=>({c:D.cli.find(x=>x.id===id),...v})).filter(x=>x.c).sort((a,b)=>b.t-a.t).slice(0,5);},[peds,D.cli]);
+  const topProd=useMemo(()=>{const m={};peds.forEach(p=>{(p.items||[]).forEach(it=>{if(!m[it.pid])m[it.pid]={qty:0,rev:0};m[it.pid].qty+=(+it.qty||1);m[it.pid].rev+=(+it.qty||1)*(+it.price||0);});});return Object.entries(m).map(([pid,v])=>({p:D.prod.find(x=>x.id===pid),...v})).filter(x=>x.p).sort((a,b)=>b.rev-a.rev);},[peds,D.prod]);
   const mx=Math.max(...byDay.map(v=>v[1]),1);
   return(
     <div className="pp" style={{maxWidth:900,margin:'0 auto'}}>
@@ -1125,11 +1236,30 @@ function Rep({D}){
           ))}
         </div>
       </div>}
-      {topCli.length>0&&<div className="card" style={{padding:20,overflow:'hidden'}}>
-        <h2 className="serif" style={{fontSize:17,color:'var(--forest)',marginBottom:12}}>Top clientes</h2>
-        <table><thead><tr><th>Cliente</th><th>Pedidos</th><th>Total</th></tr></thead>
-        <tbody>{topCli.map(({c,n,t})=><tr key={c.id}><td style={{fontWeight:600}}>{c.nombre}</td><td>{n}</td><td style={{fontWeight:700,color:'var(--forest)'}}>{fmt(t,sym)}</td></tr>)}</tbody></table>
-      </div>}
+      <div className="g2" style={{gap:16,alignItems:'start',marginBottom:20}}>
+        {topProd.length>0&&<div className="card" style={{padding:20,overflow:'hidden'}}>
+          <h2 className="serif" style={{fontSize:17,color:'var(--forest)',marginBottom:12}}>Productos más vendidos</h2>
+          <table><thead><tr><th>Producto</th><th style={{textAlign:'right'}}>Unidades</th><th style={{textAlign:'right'}}>Ingresos</th></tr></thead>
+          <tbody>{topProd.map(({p,qty,rev})=>{
+            const pct=total>0?Math.round(rev/total*100):0;
+            return <tr key={p.id}>
+              <td>
+                <div style={{fontWeight:600,fontSize:13.5}}>{p.nombre}</div>
+                <div style={{height:4,borderRadius:2,background:'#EEF0E8',marginTop:4,overflow:'hidden'}}>
+                  <div style={{height:'100%',borderRadius:2,background:'var(--forest)',width:`${pct}%`,opacity:.7}}/>
+                </div>
+              </td>
+              <td style={{textAlign:'right',fontWeight:600,color:'var(--olive)'}}>{qty}</td>
+              <td style={{textAlign:'right',fontWeight:700,color:'var(--forest)'}}>{fmt(rev,sym)}</td>
+            </tr>;
+          })}</tbody></table>
+        </div>}
+        {topCli.length>0&&<div className="card" style={{padding:20,overflow:'hidden'}}>
+          <h2 className="serif" style={{fontSize:17,color:'var(--forest)',marginBottom:12}}>Top clientes</h2>
+          <table><thead><tr><th>Cliente</th><th>Pedidos</th><th>Total</th></tr></thead>
+          <tbody>{topCli.map(({c,n,t})=><tr key={c.id}><td style={{fontWeight:600}}>{c.nombre}</td><td>{n}</td><td style={{fontWeight:700,color:'var(--forest)'}}>{fmt(t,sym)}</td></tr>)}</tbody></table>
+        </div>}
+      </div>
       {peds.length===0&&<Empty icon={<Icon n="chart" s={26} c="var(--forest)"/>} title="Sin datos en este período" sub="Ajustá el rango o registrá pedidos como 'Entregado'."/>}
     </div>
   );
@@ -1138,9 +1268,14 @@ function Rep({D}){
 // ── CONFIGURACIÓN ─────────────────────────────────────────────────────────
 function Cfg({D,ops,synced}){
   const [f,sf]=useState({...D.cfg});
+  const [costos,setCostos]=useState(()=>(D.cfg.costos&&D.cfg.costos.length>0)?D.cfg.costos.map(c=>({...c,key:c.key||uid()})):[]);
   const [showSetup,setShowSetup]=useState(false);
   const [confirm,setConfirm]=useState(null);
-  function save(){ops.saveCfg(f);toast('Configuración guardada');}
+  const gastosTotal=costos.reduce((s,c)=>s+(+c.monto||0),0);
+  function save(){const cfg={...f,costos:costos.map(({key,...c})=>c),gastos_fijos:gastosTotal};ops.saveCfg(cfg);toast('Configuración guardada');}
+  function addCosto(){setCostos(p=>[...p,{nombre:'',monto:0,key:uid()}]);}
+  function updCosto(key,field,val){setCostos(p=>p.map(c=>c.key===key?{...c,[field]:val}:c));}
+  function delCosto(key){setCostos(p=>p.filter(c=>c.key!==key));}
   function exportD(){
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));
@@ -1154,7 +1289,7 @@ function Cfg({D,ops,synced}){
         const d=JSON.parse(ev.target.result);
         if(!d||typeof d!=='object')throw new Error();
         setConfirm({title:'Importar datos',body:'Esto reemplaza todo lo actual. ¿Continuás?',okLabel:'Importar',danger:true,onOk:()=>{
-          ['ing','rec','prod','cli','ped'].forEach(k=>{
+          ['ing','rec','prod','cli','ped','pack'].forEach(k=>{
             if(Array.isArray(d[k]))d[k].forEach(item=>{if(item?.id)ops.ups(k,item,item.id);});
           });
           if(d.cfg)ops.saveCfg({...DEF.cfg,...d.cfg});
@@ -1183,10 +1318,31 @@ function Cfg({D,ops,synced}){
       </div>
       <div className="card" style={{padding:24,marginBottom:16}}>
         <h2 className="serif" style={{fontSize:18,color:'var(--forest)',marginBottom:6}}>Costos operativos</h2>
-        <p style={{fontSize:13,color:'var(--olive)',marginBottom:16}}>Usados para calcular el costo de gastos fijos por producto según tiempo de trabajo activo.</p>
-        <FI label="Gastos fijos mensuales (₡)" type="number" value={f.gastos_fijos||0} onChange={e=>sf(p=>({...p,gastos_fijos:parseFloat(e.target.value)||0}))} placeholder="Luz, agua, gas, suscripciones…"/>
+        <p style={{fontSize:13,color:'var(--olive)',marginBottom:16}}>Gastos fijos mensuales que se distribuyen por producto según el tiempo de trabajo activo.</p>
         <FI label="Horas de producción al mes" type="number" value={f.horas_mes||60} onChange={e=>sf(p=>({...p,horas_mes:parseFloat(e.target.value)||60}))} placeholder="60"/>
-        {(f.gastos_fijos||0)>0&&(f.horas_mes||0)>0&&<p style={{fontSize:12,color:'var(--olive)',marginTop:-8,marginBottom:16}}>₡{Math.round((f.gastos_fijos||0)/(f.horas_mes||60)).toLocaleString('es-CR')} por hora de producción</p>}
+        <div style={{marginBottom:16}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+            <span style={{fontSize:13,fontWeight:600,color:'var(--olive)'}}>Gastos fijos mensuales</span>
+            <Btn v='s' sm onClick={addCosto}>+ Agregar</Btn>
+          </div>
+          {costos.length===0&&<p style={{fontSize:13,color:'var(--olive)',fontStyle:'italic',textAlign:'center',padding:'12px 0'}}>Sin gastos registrados</p>}
+          {costos.map(c=>(
+            <div key={c.key} style={{display:'flex',gap:8,alignItems:'center',marginBottom:8}}>
+              <input style={{flex:2,minWidth:0}} placeholder="Descripción (Luz, Agua…)" value={c.nombre} onChange={e=>updCosto(c.key,'nombre',e.target.value)}/>
+              <input style={{flex:1,minWidth:0}} type="number" placeholder="₡/mes" value={c.monto||''} onChange={e=>updCosto(c.key,'monto',parseFloat(e.target.value)||0)}/>
+              <button onClick={()=>delCosto(c.key)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--rose)',fontSize:20,padding:'0 4px',lineHeight:1,flexShrink:0}}>×</button>
+            </div>
+          ))}
+          {costos.length>0&&(
+            <div style={{borderTop:'1px solid #EEF0E8',paddingTop:10,marginTop:4,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span style={{fontSize:13,fontWeight:600,color:'var(--forest)'}}>Total mensual</span>
+              <span style={{fontSize:14,fontWeight:700,color:'var(--forest)'}}>₡{gastosTotal.toLocaleString('es-CR')}</span>
+            </div>
+          )}
+          {gastosTotal>0&&(f.horas_mes||0)>0&&(
+            <p style={{fontSize:12,color:'var(--olive)',marginTop:8}}>≈ ₡{Math.round(gastosTotal/(f.horas_mes||60)).toLocaleString('es-CR')} por hora de producción</p>
+          )}
+        </div>
         <Btn onClick={save}>Guardar cambios</Btn>
       </div>
       <div className="card" style={{padding:24,marginBottom:16}}>
@@ -1286,6 +1442,7 @@ function App(){
   const [mob,setMob]=useState(false);
   const [synced,setSynced]=useState(false);
   const unsubs=useRef({});
+  useEffect(()=>{document.body.style.overflow=mob?'hidden':'';return()=>{document.body.style.overflow='';};},[mob]);
 
   useEffect(()=>{
     const FB_CONFIG = {
@@ -1309,14 +1466,14 @@ function App(){
   useEffect(()=>{saveLS(data);},[data]);
 
   function subscribeAll(){
-    ['ing','rec','prod','cli','ped'].forEach(c=>{
+    ['ing','rec','prod','cli','ped','pack'].forEach(c=>{
       if(unsubs.current[c])unsubs.current[c]();
       unsubs.current[c]=col(c).onSnapshot(snap=>{
         const items=snap.docs.map(d=>({id:d.id,...d.data()}));
         setData(p=>({...p,[c]:items}));
       });
     });
-    col('config').doc('main').onSnapshot(doc=>{
+    unsubs.current['cfg']=col('config').doc('main').onSnapshot(doc=>{
       if(doc.exists())setData(p=>({...p,cfg:{...p.cfg,...doc.data()}}));
     });
   }
