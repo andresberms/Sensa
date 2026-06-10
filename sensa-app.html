@@ -30,6 +30,9 @@
     .nav-item.active{background:rgba(218,227,142,.25);color:var(--pistachio);font-weight:700;}
     /* ── Cards ── */
     .card{background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);}
+    .card-hover{transition:transform .15s,box-shadow .15s;cursor:pointer;}
+    .card-hover:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);}
+    .card-hover:active{transform:translateY(0);box-shadow:0 2px 8px rgba(0,0,0,.08);}
     /* ── Forms ── */
     input,select,textarea{border:1.5px solid #E0E8D4;border-radius:10px;padding:10px 13px;width:100%;outline:none;font-size:14px;font-family:'Instrument Sans',sans-serif;background:#fff;color:#1A1A1A;transition:border-color .15s,box-shadow .15s;}
     input:focus,select:focus,textarea:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(52,82,42,.1);}
@@ -58,12 +61,14 @@
     .bc{background:var(--cream);color:var(--olive);border:1px solid #DDE8CC;}
     .bl{background:#DBEAFE;color:#1E3A5F;}
     .brd{background:#FFE4E6;color:#BE123C;}
+    .by{background:#FEF9C3;color:#92400E;}
     /* ── Tables ── */
     table{width:100%;border-collapse:collapse;}
     th{text-align:left;padding:10px 16px;font-size:10.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.07em;border-bottom:1.5px solid #EEF0E8;font-family:'Instrument Sans',sans-serif;}
     td{padding:12px 16px;font-size:13.5px;border-bottom:1px solid #F4F5EE;color:#1A1A1A;}
     tr:last-child td{border-bottom:none;}
     tr:hover td{background:#F7F9F3;}
+    @media(hover:none){tr:hover td{background:inherit;}tr:active td{background:#F7F9F3;}}
     /* ── Modals ── */
     .modal-bg{background:rgba(0,0,0,.45);backdrop-filter:blur(4px);position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;}
     .modal-box{background:#fff;border-radius:18px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.22);}
@@ -97,6 +102,12 @@
     }
     @media(max-width:420px){
       .g3{grid-template-columns:1fr!important;}
+    }
+    @media(max-width:680px){
+      .cal-cell{min-height:56px!important;}
+      .rep-dates{flex-direction:column!important;}
+      .rep-dates>div{width:100%!important;}
+      .rep-dates input{width:100%!important;}
     }
     @keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
     .toast{animation:toastIn .2s ease;}
@@ -154,7 +165,7 @@ const NAV = [
   {id:'rep',label:'Reportes',icon:'chart'},
   {id:'cfg',label:'Configuración',icon:'settings'},
 ];
-const DEF = {ing:[],rec:[],prod:[],cli:[],ped:[],cfg:{nombre:'Sensa Panetteria',moneda:'CRC',sym:'₡',dir:'',tel:''}};
+const DEF = {ing:[],rec:[],prod:[],cli:[],ped:[],cfg:{nombre:'Sensa Panetteria',moneda:'CRC',sym:'₡',dir:'',tel:'',gastos_fijos:0,horas_mes:60}};
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
@@ -165,7 +176,7 @@ function fmt(n,sym='₡'){
   return sym==='₡'?'₡'+Math.round(v).toLocaleString('es-CR'):'$'+v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
 }
 function fdate(s){if(!s)return'—';return new Date(s+'T12:00').toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'});}
-function loadLS(){try{const s=localStorage.getItem(LSK);return s?{...DEF,...JSON.parse(s)}:DEF;}catch{return DEF;}}
+function loadLS(){try{const s=localStorage.getItem(LSK);if(!s)return DEF;const p=JSON.parse(s);return{...DEF,...p,cfg:{...DEF.cfg,...(p.cfg||{})}};}catch{return DEF;}}
 function saveLS(d){localStorage.setItem(LSK,JSON.stringify(d));}
 function loadFB(){try{const s=localStorage.getItem(LSF);return s?JSON.parse(s):null;}catch{return null;}}
 function recipeCost(r,ings){return(r.ing||[]).reduce((t,ri)=>{const i=ings.find(x=>x.id===ri.id);return i?t+(i.price/(i.qty||1))*(ri.qty||0):t;},0);}
@@ -443,21 +454,21 @@ function Home({D,go}){
         </div>
         <p style={{fontSize:13,color:'var(--olive)',marginTop:4}}>{new Date().toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'})}</p>
       </div>
-      <div className="g2" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12,marginBottom:28}}>
+      <div className="g2" style={{gap:12,marginBottom:28}}>
         {[
           {l:'Pedidos activos',v:activos.length,i:'package',bg:'linear-gradient(135deg,#F0F7E8,#E8F0DC)',c:'var(--forest)',p:'ped'},
           {l:'Ingresos del mes',v:fmt(ing,sym),i:'chart',bg:'linear-gradient(135deg,#FAFBF4,#F2F4E8)',c:'var(--forest)',p:'rep'},
           {l:'Próximas entregas',v:prox.length,i:'calendar',bg:'linear-gradient(135deg,var(--cotton),#FFC8D0)',c:'#9D174D',p:'cal'},
           {l:'Cobros pendientes',v:cobros.length,i:'alert',bg:'linear-gradient(135deg,#FFF1F2,#FFE4E6)',c:'#BE123C',p:'ped'},
         ].map(s=>(
-          <div key={s.l} onClick={()=>go(s.p)} className="card" style={{padding:20,cursor:'pointer',background:s.bg,transition:'transform .15s,box-shadow .15s'}} onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,.12)';}} onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='';}}>
+          <div key={s.l} onClick={()=>go(s.p)} className="card card-hover" style={{padding:20,background:s.bg}}>
             <div style={{marginBottom:10}}><Icon n={s.i} s={22} c={s.c} sw={1.5}/></div>
             <div style={{fontFamily:'Instrument Serif,serif',fontSize:30,color:s.c,lineHeight:1}}>{s.v}</div>
             <div style={{fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:s.c,opacity:.65,marginTop:6}}>{s.l}</div>
           </div>
         ))}
       </div>
-      <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,alignItems:'start'}}>
+      <div className="g2" style={{gap:16,alignItems:'start'}}>
         <div className="card" style={{padding:20}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
             <h2 style={{fontFamily:'Instrument Serif,serif',fontSize:18,fontStyle:'italic',color:'var(--forest)',fontWeight:400}}>Próximas entregas</h2>
@@ -588,16 +599,18 @@ function Rec({D,ops}){
           })}
         </div>
       }
-      {modal!==null&&<RecModal rec={modal} ings={D.ing} onSave={save} onClose={()=>setModal(null)} sym={sym}/>}
+      {modal!==null&&<RecModal rec={modal} ings={D.ing} ops={ops} onSave={save} onClose={()=>setModal(null)} sym={sym}/>}
       {bas&&<BascModal rec={bas} ings={D.ing} sym={sym} onClose={()=>setBas(null)}/>}
       {del&&<CDel what={del.nombre} onOk={()=>{ops.del('rec',del.id);setDel(null);toast('Receta eliminada','err');}} onNo={()=>setDel(null)}/>}
     </div>
   );
 }
-function RecModal({rec,ings,onSave,onClose,sym}){
+function RecModal({rec,ings,ops,onSave,onClose,sym}){
   const[f,sf]=useState({nombre:'',cat:'',rend:'',rend_u:'pz',inst:'',notes:'',ing:[],...rec});
   const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
   const[ni,sni]=useState({id:'',qty:''});
+  const[nig,setNig]=useState(null);
+  const saveNewIng=()=>{if(!nig?.nombre?.trim()||!nig.qty)return;const nid=uid();const newI={id:nid,nombre:nig.nombre.trim(),price:+(nig.price||0),qty:+(nig.qty||1),unit:nig.unit||'g',prov:'',notes:''};ops.ups('ing',newI);sni({id:nid,qty:''});setNig(null);toast('Ingrediente creado');};
   const add=()=>{if(!ni.id||!ni.qty)return;sf(p=>({...p,ing:[...p.ing,{...ni,key:uid()}]}));sni({id:'',qty:''}); };
   const costo=f.ing.reduce((t,ri)=>{const i=ings.find(x=>x.id===ri.id);return i?t+(i.price/(i.qty||1))*(ri.qty||0):t;},0);
   return(
@@ -625,14 +638,30 @@ function RecModal({rec,ings,onSave,onClose,sym}){
           })}</tbody>
         </table>
       </div>}
-      <div style={{display:'flex',gap:8,marginBottom:16}}>
+      <div style={{display:'flex',gap:8,marginBottom:nig?4:16}}>
         <select value={ni.id} onChange={e=>sni(p=>({...p,id:e.target.value}))} style={{flex:1}}>
           <option value="">Agregar ingrediente...</option>
           {ings.map(i=><option key={i.id} value={i.id}>{i.nombre} ({i.unit})</option>)}
         </select>
         <input type="number" step=".001" placeholder="Cant." value={ni.qty} onChange={e=>sni(p=>({...p,qty:e.target.value}))} style={{width:80}}/>
         <Btn onClick={add} disabled={!ni.id||!ni.qty}>+</Btn>
+        <button className="btn btn-s btn-sm" title={nig?'Cancelar':'Nuevo ingrediente'} onClick={()=>setNig(nig?null:{nombre:'',qty:'',unit:'g',price:''})} style={{flexShrink:0}}>{nig?'✕':'*'}</button>
       </div>
+      {nig&&<div style={{marginBottom:16,background:'var(--cream)',borderRadius:10,padding:'12px',display:'flex',flexDirection:'column',gap:8,border:'1px solid #DDE8CC'}}>
+        <div style={{fontSize:11,fontWeight:700,color:'var(--olive)',textTransform:'uppercase',letterSpacing:'.05em'}}>Nuevo ingrediente</div>
+        <input placeholder="Nombre *" value={nig.nombre} onChange={e=>setNig(p=>({...p,nombre:e.target.value}))}/>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+          <input type="number" placeholder="Empaque" value={nig.qty} onChange={e=>setNig(p=>({...p,qty:e.target.value}))}/>
+          <select value={nig.unit} onChange={e=>setNig(p=>({...p,unit:e.target.value}))}>
+            {['g','kg','ml','L','pz','taza'].map(u=><option key={u} value={u}>{u}</option>)}
+          </select>
+          <input type="number" placeholder="Precio (₡)" value={nig.price} onChange={e=>setNig(p=>({...p,price:e.target.value}))}/>
+        </div>
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+          <button className="btn btn-s btn-sm" onClick={()=>setNig(null)}>Cancelar</button>
+          <button className="btn btn-p btn-sm" onClick={saveNewIng} disabled={!nig?.nombre?.trim()||!nig.qty}>Guardar ingrediente</button>
+        </div>
+      </div>}
       {costo>0&&<div style={{background:'#F0F7E8',borderRadius:10,padding:'10px 14px',marginBottom:16,display:'flex',justifyContent:'space-between'}}>
         <span style={{fontSize:13.5,fontWeight:600,color:'var(--forest)'}}>Costo total ingredientes</span>
         <span style={{fontWeight:700,color:'var(--forest)'}}>{fmt(costo,sym)}</span>
@@ -704,15 +733,18 @@ function Calc({D,ops}){
       {list.length===0?<Empty icon={<Icon n="calc" s={26} c="var(--forest)"/>} title="Sin productos" sub="Calculá el precio de venta de tus panes." action={<Btn onClick={()=>setModal({})}>+ Crear producto</Btn>}/>:
         <div className="card tbl" style={{overflow:'hidden'}}>
           <table>
-            <thead><tr><th>Producto</th><th>SKU</th><th>Costo prod.</th><th>Precio venta</th><th>Margen</th><th></th></tr></thead>
+            <thead><tr><th>Producto</th><th>SKU</th><th>Costo real</th><th>Precio venta</th><th>Ganancia</th><th>₡/hora</th><th></th></tr></thead>
             <tbody>{list.map(p=>{
-              const m=p.cost>0?Math.round((p.price-p.cost)/p.cost*100):null;
+              const gan=p.price-(p.cost||0);
+              const pct=p.cost>0?Math.round(gan/p.price*100):null;
+              const xhora=(p.tiempo&&p.tiempo>0)?Math.round(gan/(p.tiempo/60)):null;
               return <tr key={p.id}>
                 <td style={{fontWeight:600}}>{p.nombre}</td>
                 <td style={{fontSize:12,fontFamily:'monospace',color:'var(--olive)'}}>{p.sku||'—'}</td>
                 <td>{fmt(p.cost||0,sym)}</td>
                 <td style={{fontWeight:700,color:'var(--forest)'}}>{fmt(p.price||0,sym)}</td>
-                <td>{m!=null?<span className={`badge ${m>0?'bg':'brd'}`}>{m}%</span>:'—'}</td>
+                <td>{pct!=null?<span className={`badge ${pct>20?'bg':pct>0?'by':'brd'}`}>{pct}%</span>:'—'}</td>
+                <td style={{fontWeight:600,color:'var(--forest)'}}>{xhora!=null?fmt(xhora,sym):'—'}</td>
                 <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setModal(p)}><Icon n='edit' s={14}/></Btn><Btn v='g' sm onClick={()=>setDel(p)}><Icon n='trash' s={14}/></Btn></div></td>
               </tr>;
             })}</tbody>
@@ -726,16 +758,20 @@ function Calc({D,ops}){
 }
 function ProdModal({prod,D,onSave,onClose}){
   const {sym}=D.cfg;
-  const[f,sf]=useState({nombre:'',sku:'',recs:[],extras:0,labor:0,overhead:0,waste:5,ut_type:'pct',ut:30,ship:0,comm:0,notes:'',...prod});
+  const[f,sf]=useState({nombre:'',sku:'',recs:[],extras:0,tiempo:0,waste:5,ut_type:'fixed',ut:0,ship:0,comm:0,notes:'',...prod});
   const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
   const n=k=>e=>sf(p=>({...p,[k]:parseFloat(e.target.value)||0}));
   const[nr,snr]=useState({rid:'',t:1});
   const addR=()=>{if(!nr.rid)return;sf(p=>({...p,recs:[...p.recs,{...nr,key:uid()}]}));snr({rid:'',t:1});};
   const rcost=f.recs.reduce((t,rc)=>{const r=D.rec.find(x=>x.id===rc.rid);return r?t+recipeCost(r,D.ing)*(rc.t||1):t;},0);
-  const base=rcost+(+f.extras)+(+f.labor)+(+f.overhead);
+  const gi_hora=(D.cfg.gastos_fijos||0)/(D.cfg.horas_mes||60);
+  const gi_prod=gi_hora*((+f.tiempo||0)/60);
+  const base=rcost+(+f.extras)+gi_prod;
   const withWaste=base*(1+(+f.waste||0)/100);
   const utAmt=f.ut_type==='pct'?withWaste*(+f.ut/100):(+f.ut);
   const final=withWaste+utAmt+(+f.ship)+withWaste*((+f.comm)/100);
+  const ganancia=final-withWaste;
+  const ingreso_hora=(+f.tiempo)>0?ganancia/((+f.tiempo)/60):null;
   return(
     <Modal title={prod.id?'Editar producto':'Nuevo producto'} onClose={onClose} wide>
       <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:12}}>
@@ -760,35 +796,36 @@ function ProdModal({prod,D,onSave,onClose}){
         <Btn onClick={addR} disabled={!nr.rid}>+</Btn>
       </div>
       <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
-        <FI label="Extras/complementos" type="number" value={f.extras} onChange={n('extras')}/>
-        <FI label="Mano de obra" type="number" value={f.labor} onChange={n('labor')}/>
-        <FI label="Gastos indirectos" type="number" value={f.overhead} onChange={n('overhead')}/>
-      </div>
-      <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+        <FI label="Empaque (₡)" type="number" value={f.extras} onChange={n('extras')} placeholder="Bolsa + sticker"/>
+        <FI label="Tiempo activo (min)" type="number" value={f.tiempo||0} onChange={n('tiempo')} placeholder="Minutos de trabajo activo"/>
         <FI label="Merma (%)" type="number" step=".5" value={f.waste} onChange={n('waste')}/>
-        <F label="Tipo de utilidad">
-          <div style={{display:'flex',gap:8}}>
-            {['pct','fixed'].map(m=><button key={m} onClick={()=>sf(p=>({...p,ut_type:m}))} style={{flex:1,padding:'9px 0',borderRadius:9,border:`1.5px solid ${f.ut_type===m?'var(--forest)':'#E2E8D8'}`,background:f.ut_type===m?'var(--forest)':'white',color:f.ut_type===m?'white':'var(--olive)',fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'Instrument Sans,sans-serif'}}>{m==='pct'?'Porcentaje':'Monto fijo'}</button>)}
-          </div>
-        </F>
       </div>
       <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
-        <FI label={f.ut_type==='pct'?'Utilidad (%)':'Utilidad'} type="number" value={f.ut} onChange={n('ut')}/>
-        <FI label="Envío" type="number" value={f.ship} onChange={n('ship')}/>
-        <FI label="Comisión (%)" type="number" step=".1" value={f.comm} onChange={n('comm')}/>
+        <F label="Precio de venta">
+          <div style={{display:'flex',gap:8}}>
+            {['fixed','pct'].map(m=><button key={m} onClick={()=>sf(p=>({...p,ut_type:m}))} style={{flex:1,padding:'9px 0',borderRadius:9,border:`1.5px solid ${f.ut_type===m?'var(--forest)':'#E2E8D8'}`,background:f.ut_type===m?'var(--forest)':'white',color:f.ut_type===m?'white':'var(--olive)',fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'Instrument Sans,sans-serif'}}>{m==='fixed'?'Monto fijo':'% margen'}</button>)}
+          </div>
+        </F>
+        <FI label={f.ut_type==='pct'?'Margen objetivo (%)':'Ganancia neta (₡)'} type="number" value={f.ut} onChange={n('ut')}/>
+        <FI label="Envío / comisión" type="number" value={f.ship} onChange={n('ship')}/>
       </div>
       <div style={{background:'#F0F7E8',borderRadius:12,padding:16,marginBottom:16}}>
-        <h3 className="serif" style={{fontSize:16,color:'var(--forest)',marginBottom:12}}>Resumen de costos</h3>
+        <h3 className="serif" style={{fontSize:16,color:'var(--forest)',marginBottom:12}}>Resumen</h3>
         <div style={{display:'flex',flexDirection:'column',gap:6,fontSize:13.5}}>
-          {[['Recetas',rcost],[`Extras`,+f.extras],['Mano de obra',+f.labor],['Gastos ind.',+f.overhead]].map(([l,v])=>v>0&&<div key={l} style={{display:'flex',justifyContent:'space-between',color:'var(--forest)'}}><span>{l}</span><span>{fmt(v,sym)}</span></div>)}
+          {[['Ingredientes',rcost],[`Empaque`,+f.extras],['Gastos fijos dist.',gi_prod]].map(([l,v])=>v>0&&<div key={l} style={{display:'flex',justifyContent:'space-between',color:'var(--forest)'}}><span>{l}</span><span>{fmt(v,sym)}</span></div>)}
           <div style={{display:'flex',justifyContent:'space-between',fontWeight:600,paddingTop:6,borderTop:'1px solid rgba(52,82,42,.2)',color:'var(--forest)'}}><span>Subtotal</span><span>{fmt(base,sym)}</span></div>
           {f.waste>0&&<div style={{display:'flex',justifyContent:'space-between',color:'var(--olive)'}}><span>+ Merma ({f.waste}%)</span><span>{fmt(withWaste-base,sym)}</span></div>}
-          <div style={{display:'flex',justifyContent:'space-between',fontWeight:700,paddingTop:6,borderTop:'1px solid rgba(52,82,42,.2)',color:'var(--forest)'}}><span>Costo producción</span><span>{fmt(withWaste,sym)}</span></div>
-          <div style={{display:'flex',justifyContent:'space-between',color:'#2D6A4F'}}><span>+ Utilidad</span><span>{fmt(utAmt,sym)}</span></div>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,borderTop:'2px solid var(--forest)',marginTop:4}}>
-            <span style={{fontWeight:700,fontSize:15,color:'var(--forest)'}}>Precio sugerido</span>
+          <div style={{display:'flex',justifyContent:'space-between',fontWeight:700,paddingTop:6,borderTop:'1px solid rgba(52,82,42,.2)',color:'var(--forest)'}}><span>Costo real</span><span>{fmt(withWaste,sym)}</span></div>
+          <div style={{display:'flex',justifyContent:'space-between',color:'#2D6A4F'}}><span>Precio de venta</span><span>{fmt(final,sym)}</span></div>
+          <div style={{display:'flex',justifyContent:'space-between',color:'#2D6A4F',fontWeight:600}}><span>Ganancia neta</span><span>{fmt(ganancia,sym)}</span></div>
+          {ingreso_hora!=null&&<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,borderTop:'2px solid var(--forest)',marginTop:4}}>
+            <span style={{fontWeight:700,fontSize:15,color:'var(--forest)'}}>₡ por hora activa</span>
+            <span className="serif" style={{fontSize:26,fontWeight:700,color:'var(--forest)'}}>{fmt(ingreso_hora,sym)}</span>
+          </div>}
+          {ingreso_hora==null&&<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,borderTop:'2px solid var(--forest)',marginTop:4}}>
+            <span style={{fontWeight:700,fontSize:15,color:'var(--forest)'}}>Precio de venta</span>
             <span className="serif" style={{fontSize:26,fontWeight:700,color:'var(--forest)'}}>{fmt(final,sym)}</span>
-          </div>
+          </div>}
         </div>
       </div>
       <div style={{display:'flex',gap:12,justifyContent:'flex-end',marginTop:8}}>
@@ -929,20 +966,37 @@ function Ped({D,ops}){
           })}</tbody></table>
         </div>
       }
-      {modal!==null&&<PedModal ped={modal} D={D} onSave={save} onClose={()=>setModal(null)}/>}
+      {modal!==null&&<PedModal ped={modal} D={D} ops={ops} onSave={save} onClose={()=>setModal(null)}/>}
       {del&&<CDel what={`pedido de ${cl(del.cli_id)?.nombre||'cliente'}`} onOk={()=>{ops.del('ped',del.id);setDel(null);toast('Pedido eliminado','err');}} onNo={()=>setDel(null)}/>}
     </div>
   );
 }
-function PedModal({ped,D,onSave,onClose}){
+function PedModal({ped,D,ops,onSave,onClose}){
   const {sym}=D.cfg;
   const[f,sf]=useState({cli_id:'',fecha:today(),fecha_e:'',desc:'',notes:'',total:'',adelanto:'',estado:'Cotización',...ped});
   const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
   const saldo=(+f.total||0)-(+f.adelanto||0);
+  const[nc,setNc]=useState(null);
+  const saveNewCli=()=>{if(!nc?.nombre?.trim())return;const nid=uid();ops.ups('cli',{id:nid,nombre:nc.nombre.trim(),tel:nc.tel||'',email:nc.email||'',notes:''});sf(p=>({...p,cli_id:nid}));setNc(null);toast('Cliente creado');};
   return(
     <Modal title={ped.id?'Editar pedido':'Nuevo pedido'} onClose={onClose} wide>
       <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-        <F label="Cliente *"><select value={f.cli_id} onChange={s('cli_id')}><option value="">Seleccionar...</option>{D.cli.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select></F>
+        <F label="Cliente *">
+          <div style={{display:'flex',gap:6}}>
+            <select style={{flex:1}} value={f.cli_id} onChange={s('cli_id')}><option value="">Seleccionar...</option>{D.cli.map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
+            <button className="btn btn-s btn-sm" title={nc?'Cancelar':'Nuevo cliente'} onClick={()=>setNc(nc?null:{nombre:'',tel:'',email:''})} style={{flexShrink:0}}>{nc?'✕':'+'}</button>
+          </div>
+          {nc&&<div style={{marginTop:8,background:'var(--cream)',borderRadius:10,padding:'12px',display:'flex',flexDirection:'column',gap:8,border:'1px solid #DDE8CC'}}>
+            <div style={{fontSize:11,fontWeight:700,color:'var(--olive)',textTransform:'uppercase',letterSpacing:'.05em'}}>Nuevo cliente</div>
+            <input placeholder="Nombre *" value={nc.nombre} onChange={e=>setNc(p=>({...p,nombre:e.target.value}))}/>
+            <input placeholder="Teléfono / WhatsApp" value={nc.tel} onChange={e=>setNc(p=>({...p,tel:e.target.value}))}/>
+            <input placeholder="Email" value={nc.email} onChange={e=>setNc(p=>({...p,email:e.target.value}))}/>
+            <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+              <button className="btn btn-s btn-sm" onClick={()=>setNc(null)}>Cancelar</button>
+              <button className="btn btn-p btn-sm" onClick={saveNewCli} disabled={!nc?.nombre?.trim()}>Guardar cliente</button>
+            </div>
+          </div>}
+        </F>
         <FS label="Estado" value={f.estado} onChange={s('estado')} opts={ESTADOS}/>
       </div>
       <div className="modal-g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
@@ -1002,10 +1056,11 @@ function Cal({D}){
     <div className="pp" style={{maxWidth:900,margin:'0 auto'}}>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
         <h1 style={{fontFamily:'Instrument Serif,serif',fontSize:30,fontStyle:'italic',color:'var(--forest)',fontWeight:400}}>Calendario</h1>
-        <div style={{display:'flex',alignItems:'center',gap:12}}>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
           <Btn v='s' sm onClick={()=>nav(-1)}>‹</Btn>
-          <span style={{fontWeight:600,color:'var(--forest)',minWidth:160,textAlign:'center'}}>{MESES[m.mo]} {m.y}</span>
+          <span style={{fontWeight:600,color:'var(--forest)',minWidth:140,textAlign:'center'}}>{MESES[m.mo]} {m.y}</span>
           <Btn v='s' sm onClick={()=>nav(1)}>›</Btn>
+          {(m.y!==new Date().getFullYear()||m.mo!==new Date().getMonth())&&<Btn v='s' sm onClick={()=>{const d=new Date();setM({y:d.getFullYear(),mo:d.getMonth()});}}>Hoy</Btn>}
         </div>
       </div>
       <div className="card tbl" style={{overflow:'hidden'}}>
@@ -1016,7 +1071,7 @@ function Cal({D}){
           {dias.map(({d,curr})=>{
             const peds=gd(d),isT=d===hoy;
             return(
-              <div key={d} onClick={()=>peds.length&&setDay(d)} style={{background:'white',padding:8,minHeight:72,opacity:curr?1:.4,cursor:peds.length?'pointer':'default'}}>
+              <div key={d} onClick={()=>peds.length&&setDay(d)} className="cal-cell" style={{background:'white',padding:8,minHeight:72,opacity:curr?1:.4,cursor:peds.length?'pointer':'default'}}>
                 <div style={{fontSize:13.5,fontWeight:600,width:26,height:26,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',background:isT?'var(--forest)':'transparent',color:isT?'white':'#555',marginBottom:4}}>{new Date(d+'T12:00').getDate()}</div>
                 {peds.slice(0,2).map(p=><div key={p.id} style={{fontSize:11,background:'var(--pistachio)',color:'var(--forest)',borderRadius:4,padding:'1px 6px',marginBottom:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontWeight:600}}>{cl(p.cli_id)?.nombre?.split(' ')[0]||'?'}</div>)}
                 {peds.length>2&&<div style={{fontSize:11,color:'var(--olive)'}}>+{peds.length-2}</div>}
@@ -1045,11 +1100,11 @@ function Rep({D}){
   return(
     <div className="pp" style={{maxWidth:900,margin:'0 auto'}}>
       <h1 style={{fontFamily:'Instrument Serif,serif',fontSize:30,fontStyle:'italic',color:'var(--forest)',fontWeight:400,marginBottom:28}}>Reportes de Venta</h1>
-      <div className="card" style={{padding:16,marginBottom:24,display:'flex',flexWrap:'wrap',gap:16,alignItems:'flex-end'}}>
-        <div><label>Desde</label><input type="date" value={desde} onChange={e=>setDesde(e.target.value)} style={{width:170}}/></div>
-        <div><label>Hasta</label><input type="date" value={hasta} onChange={e=>setHasta(e.target.value)} style={{width:170}}/></div>
+      <div className="card rep-dates" style={{padding:16,marginBottom:24,display:'flex',flexWrap:'wrap',gap:12,alignItems:'flex-end'}}>
+        <div style={{flex:1,minWidth:140}}><label>Desde</label><input type="date" value={desde} onChange={e=>setDesde(e.target.value)} style={{width:'100%'}}/></div>
+        <div style={{flex:1,minWidth:140}}><label>Hasta</label><input type="date" value={hasta} onChange={e=>setHasta(e.target.value)} style={{width:'100%'}}/></div>
       </div>
-      <div className="g2" style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12,marginBottom:28}}>
+      <div className="g2" style={{gap:12,marginBottom:28}}>
         {[{l:'Ventas totales',v:fmt(total,sym),i:'chart',bg:'#F0F7E8',c:'var(--forest)'},{l:'Pedidos entregados',v:peds.length,i:'package',bg:'#EEF6FF',c:'#1E3A5F'},{l:'Ticket promedio',v:fmt(ticket,sym),i:'calc',bg:'var(--cotton)',c:'#9D174D'},{l:'Clientes atendidos',v:nclients,i:'users',bg:'#F5F3FF',c:'#4C1D95'}].map(s=>(
           <div key={s.l} className="card" style={{padding:18,background:s.bg}}>
             <div style={{marginBottom:8}}><Icon n={s.i} s={20} c={s.c} sw={1.5}/></div>
@@ -1097,8 +1152,12 @@ function Cfg({D,ops,synced}){
     r.onload=ev=>{
       try{
         const d=JSON.parse(ev.target.result);
+        if(!d||typeof d!=='object')throw new Error();
         setConfirm({title:'Importar datos',body:'Esto reemplaza todo lo actual. ¿Continuás?',okLabel:'Importar',danger:true,onOk:()=>{
-          ['ing','rec','prod','cli','ped','cfg'].forEach(k=>d[k]&&ops.replaceAll(k,d[k]));
+          ['ing','rec','prod','cli','ped'].forEach(k=>{
+            if(Array.isArray(d[k]))d[k].forEach(item=>{if(item?.id)ops.ups(k,item,item.id);});
+          });
+          if(d.cfg)ops.saveCfg({...DEF.cfg,...d.cfg});
           toast('Datos importados correctamente');setConfirm(null);
         }});
       }catch{toast('Archivo inválido — usá un backup de Sensa','err');}
@@ -1120,6 +1179,14 @@ function Cfg({D,ops,synced}){
             {MONEDAS.map(m=><option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
         </F>
+        <Btn onClick={save}>Guardar cambios</Btn>
+      </div>
+      <div className="card" style={{padding:24,marginBottom:16}}>
+        <h2 className="serif" style={{fontSize:18,color:'var(--forest)',marginBottom:6}}>Costos operativos</h2>
+        <p style={{fontSize:13,color:'var(--olive)',marginBottom:16}}>Usados para calcular el costo de gastos fijos por producto según tiempo de trabajo activo.</p>
+        <FI label="Gastos fijos mensuales (₡)" type="number" value={f.gastos_fijos||0} onChange={e=>sf(p=>({...p,gastos_fijos:parseFloat(e.target.value)||0}))} placeholder="Luz, agua, gas, suscripciones…"/>
+        <FI label="Horas de producción al mes" type="number" value={f.horas_mes||60} onChange={e=>sf(p=>({...p,horas_mes:parseFloat(e.target.value)||60}))} placeholder="60"/>
+        {(f.gastos_fijos||0)>0&&(f.horas_mes||0)>0&&<p style={{fontSize:12,color:'var(--olive)',marginTop:-8,marginBottom:16}}>₡{Math.round((f.gastos_fijos||0)/(f.horas_mes||60)).toLocaleString('es-CR')} por hora de producción</p>}
         <Btn onClick={save}>Guardar cambios</Btn>
       </div>
       <div className="card" style={{padding:24,marginBottom:16}}>
@@ -1236,6 +1303,7 @@ function App(){
     localStorage.setItem(LSF, JSON.stringify(saved));
     const ok = initFB(saved.config, saved.workspaceId);
     if(ok){ setSynced(true); subscribeAll(); }
+    return()=>{Object.values(unsubs.current).forEach(u=>u&&u());};
   },[]);
 
   useEffect(()=>{saveLS(data);},[data]);
@@ -1307,8 +1375,8 @@ function App(){
             <div style={{width:7,height:7,borderRadius:'50%',background:synced?'var(--pistachio)':'rgba(255,255,255,.2)',boxShadow:synced?'0 0 5px rgba(218,227,142,.5)':'none'}}/>
           </div>
         </div>
-        <div style={{flex:1,overflowY:'auto',background:'var(--cream)',paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
-          <div style={{paddingBottom:68}}>
+        <div style={{flex:1,overflowY:'auto',background:'var(--cream)'}}>
+          <div style={{paddingBottom:'calc(72px + env(safe-area-inset-bottom, 0px))' }}>
             {views[page]||views.home}
           </div>
         </div>
