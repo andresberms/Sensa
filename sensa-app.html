@@ -1550,7 +1550,7 @@ function App(){
   const views={home:<Home {...props}/>,ing:<Ing {...props}/>,rec:<Rec {...props}/>,calc:<Calc {...props}/>,cli:<Cli {...props}/>,ped:<Ped {...props}/>,cal:<Cal {...props}/>,rep:<Rep {...props}/>,cfg:<Cfg {...props} synced={synced}/>};
 
   return(
-    <div style={{display:'flex',height:'100vh',overflow:'hidden'}}>
+    <div style={{display:'flex',height:'100vh',overflowY:'hidden'}}>
       {/* Sidebar — oculto en mobile vía CSS */}
       <div className="sb-desktop">
         <Sidebar page={page} go={setPage} synced={synced}/>
@@ -1565,7 +1565,7 @@ function App(){
       </div>}
 
       {/* Main */}
-      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',minHeight:0,minWidth:0}}>
         {/* Mobile header */}
         <div className="mob-bar" style={{alignItems:'center',gap:12,paddingTop:'calc(10px + env(safe-area-inset-top, 0px))',paddingBottom:'10px',paddingLeft:14,paddingRight:14,background:'var(--forest)',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
           <button className="ham-btn" onClick={()=>setMob(true)} aria-label="Abrir menú">
