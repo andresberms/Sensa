@@ -553,7 +553,7 @@ function Ing({D,ops}){
   const tabs=[{id:'ing',l:`Ingredientes (${D.ing.length})`},{id:'pack',l:`Empaques (${D.pack.length})`}];
   return(
     <div className="pp" style={{maxWidth:960,margin:'0 auto'}}>
-      <PH title="Ingredientes & Empaques" action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>
+      <PH title="Ingredientes & Empaques" sub={`${D.ing.length} ingredientes · ${D.pack.length} empaques`} action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>
       <div style={{display:'flex',gap:6,marginBottom:16}}>
         {tabs.map(t=><button key={t.id} onClick={()=>{setTab(t.id);setQ('');}} style={{padding:'7px 18px',borderRadius:10,border:`1.5px solid ${tab===t.id?'var(--forest)':'#E2E8D8'}`,background:tab===t.id?'var(--forest)':'#fff',color:tab===t.id?'#fff':'var(--olive)',fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'Instrument Sans,sans-serif'}}>{t.l}</button>)}
       </div>
@@ -579,6 +579,7 @@ function Ing({D,ops}){
       }
       {modal!==null&&<IngModal ing={modal} onSave={save} onClose={()=>setModal(null)} sym={sym} label={label}/>}
       {del&&<CDel what={del.nombre} onOk={()=>{ops.del(tab,del.id);setDel(null);toast(`${label} eliminado`,'err');}} onNo={()=>setDel(null)}/>}
+      <button className="fab" onClick={()=>setModal({})} title={`Nuevo ${label.toLowerCase()}`}><Icon n='plus' s={24} c='#fff'/></button>
     </div>
   );
 }
@@ -827,7 +828,7 @@ function Calc({D,ops}){
 }
 function ProdModal({prod,D,onSave,onClose}){
   const {sym}=D.cfg;
-  const[f,sf]=useState({nombre:'',sku:'',recs:[],packing:[],extras:0,tiempo:0,waste:5,ut_type:'fixed',ut:0,ship:0,comm:0,notes:'',...prod,recs:(prod.recs||[]).map(r=>({...r,key:r.key||uid()})),packing:(prod.packing||[]).map(p=>({...p,key:p.key||uid()}))});
+  const[f,sf]=useState({nombre:'',sku:'',recs:[],packing:[],extras:0,tiempo:0,waste:5,ut_type:'fixed',ut:0,ship:0,notes:'',...prod,recs:(prod.recs||[]).map(r=>({...r,key:r.key||uid()})),packing:(prod.packing||[]).map(p=>({...p,key:p.key||uid()}))});
   const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
   const n=k=>e=>sf(p=>({...p,[k]:parseFloat(e.target.value)||0}));
   const[nr,snr]=useState({rid:'',t:1});
@@ -851,7 +852,7 @@ function ProdModal({prod,D,onSave,onClose}){
         <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder="Ej: Hogaza masa madre 700g"/>
         <FI label="SKU" value={f.sku||''} onChange={s('sku')} placeholder="HMM-700"/>
       </div>
-      <label>Recetas incluidas</label>
+      <div className="msec">Recetas</div>
       {f.recs.length>0&&<div style={{border:'1px solid #EEF0E8',borderRadius:10,overflow:'hidden',marginBottom:8}}>
         <table><thead><tr><th>Receta</th><th>Tandas</th><th>Costo</th><th></th></tr></thead>
         <tbody>{f.recs.map(rc=>{
@@ -865,7 +866,7 @@ function ProdModal({prod,D,onSave,onClose}){
         <input type="number" min=".5" step=".5" placeholder="Tandas" value={nr.t} onChange={e=>snr(p=>({...p,t:+e.target.value||1}))} style={{width:80}}/>
         <Btn onClick={addR} disabled={!nr.rid}>+</Btn>
       </div>
-      <label>Empaque</label>
+      <div className="msec">Empaque</div>
       {f.packing.length>0&&<div style={{border:'1px solid #EEF0E8',borderRadius:10,overflow:'hidden',marginBottom:8}}>
         <table><thead><tr><th>Material</th><th style={{textAlign:'center'}}>Cant.</th><th>Costo</th><th></th></tr></thead>
         <tbody>{f.packing.map(pi=>{
@@ -1088,7 +1089,6 @@ function PedModal({ped,D,ops,onSave,onClose}){
   const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
   const saldo=(+f.total||0)-(+f.adelanto||0);
   const[nc,setNc]=useState(null);
-  const[ni,sni]=useState({pid:'',qty:1});
   const saveNewCli=()=>{if(!nc?.nombre?.trim())return;const nid=uid();ops.ups('cli',{id:nid,nombre:nc.nombre.trim(),tel:nc.tel||'',email:nc.email||'',notes:''});sf(p=>({...p,cli_id:nid}));setNc(null);toast('Cliente creado');};
   function recalc(items){
     const tot=Math.round(items.reduce((t,i)=>t+(+i.qty||1)*(+i.price||0),0));
@@ -1100,7 +1100,6 @@ function PedModal({ped,D,ops,onSave,onClose}){
     const prod=D.prod.find(p=>p.id===prodId);
     if(!prod)return;
     recalc([...f.items,{pid:prodId,qty:1,price:prod.price,key:uid()}]);
-    sni({pid:'',qty:1});
   }
   function updQty(key,qty){recalc(f.items.map(i=>i.key===key?{...i,qty:+qty||1}:i));}
   function remItem(key){recalc(f.items.filter(i=>i.key!==key));}
@@ -1162,7 +1161,7 @@ function PedModal({ped,D,ops,onSave,onClose}){
         <F label="Saldo"><div style={{padding:'10px 13px',borderRadius:9,fontWeight:700,fontSize:15,background:saldo>0.01?'#FFF1F2':'#F0FDF4',color:saldo>0.01?'#BE123C':'#2D6A4F',border:`1.5px solid ${saldo>0.01?'#FECDD3':'#BBF7D0'}`}}>{saldo>0.01?fmt(saldo,sym):'✓ Pagado'}</div></F>
       </div>
       <div className="msec">Notas internas</div>
-      <FT label="" value={f.notes||''} onChange={s('notes')} placeholder="Instrucciones de producción, observaciones…"/>
+      <FT label="Notas" value={f.notes||''} onChange={s('notes')} placeholder="Instrucciones de producción, observaciones…"/>
       <div style={{display:'flex',gap:12,justifyContent:'flex-end',marginTop:8}}>
         <Btn v='s' onClick={onClose}>Cancelar</Btn>
         <Btn onClick={()=>f.cli_id&&onSave(f)} disabled={!f.cli_id}>Guardar</Btn>
