@@ -87,7 +87,7 @@
     .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
     .modal-g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-    .tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;overflow-y:visible;}
     .tbl table{min-width:520px;}
     @media(max-width:960px){
       .sb-desktop{display:none!important;}
@@ -559,8 +559,7 @@ function Ing({D,ops}){
       </div>
       <SB val={q} set={setQ} ph={tab==='ing'?'Buscar ingrediente o proveedor...':'Buscar material de empaque...'}/>
       {list.length===0?<Empty icon={<Icon n={tab==='ing'?'layers':'package'} s={26} c="var(--forest)"/>} title={`Sin ${tab==='ing'?'ingredientes':'empaques'}`} sub={tab==='ing'?'Agregá tus harinas, levaduras, sal y más.':'Agregá bolsas, stickers, etiquetas, cajas...'} action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
-        <div className="card" style={{overflow:'hidden'}}>
-        <div className="tbl tbl-sticky">
+        <div className="tbl tbl-sticky card">
           <table>
             <thead><tr><th>{label}</th><th className="nr">Precio pack</th><th>Cantidad</th><th className="nr">Costo / unidad</th><th>Proveedor</th><th></th></tr></thead>
             <tbody>{list.map(i=>(
@@ -574,7 +573,6 @@ function Ing({D,ops}){
               </tr>
             ))}</tbody>
           </table>
-        </div>
         </div>
       }
       {modal!==null&&<IngModal ing={modal} onSave={save} onClose={()=>setModal(null)} sym={sym} label={label}/>}
@@ -794,8 +792,7 @@ function Calc({D,ops}){
       <PH title="Calculadora de Precios" sub={`${D.prod.length} productos`} action={<Btn onClick={()=>setModal({})}>+ Nuevo producto</Btn>}/>
       <SB val={q} set={setQ} ph="Buscar producto..."/>
       {list.length===0?<Empty icon={<Icon n="calc" s={26} c="var(--forest)"/>} title="Sin productos" sub="Calculá el precio de venta de tus panes." action={<Btn onClick={()=>setModal({})}>+ Crear producto</Btn>}/>:
-        <div className="card" style={{overflow:'hidden'}}>
-        <div className="tbl tbl-sticky">
+        <div className="tbl tbl-sticky card">
           <table>
             <thead><tr><th>Producto</th><th>SKU</th><th className="nr">Costo real</th><th className="nr">Precio venta</th><th className="nr">Margen</th><th className="nr">₡/hora</th><th></th></tr></thead>
             <tbody>{list.map(p=>{
@@ -817,7 +814,6 @@ function Calc({D,ops}){
               </tr>;
             })}</tbody>
           </table>
-        </div>
         </div>
       }
       {modal!==null&&<ProdModal prod={modal} D={D} onSave={save} onClose={()=>setModal(null)}/>}
@@ -958,12 +954,10 @@ function Cli({D,ops}){
         </div>
         <h2 className="serif" style={{fontSize:18,color:'var(--forest)',marginBottom:12}}>Historial de pedidos</h2>
         {peds.length===0?<p style={{color:'var(--olive)'}}>Sin pedidos aún.</p>:
-          <div className="card" style={{overflow:'hidden'}}>
-          <div className="tbl">
+          <div className="tbl card">
             <table><thead><tr><th>Fecha</th><th>Entrega</th><th>Descripción</th><th>Total</th><th>Estado</th></tr></thead>
             <tbody>{peds.map(p=><tr key={p.id}><td>{fdate(p.fecha)}</td><td>{fdate(p.fecha_e)}</td><td style={{fontSize:13,color:'var(--olive)'}}>{p.desc||'—'}</td><td style={{fontWeight:700}}>{fmt(p.total||0,sym)}</td><td><span className={`badge ${BADGE_E[p.estado]||'bc'}`}>{p.estado}</span></td></tr>)}</tbody>
             </table>
-          </div>
           </div>
         }
       </div>
@@ -974,8 +968,7 @@ function Cli({D,ops}){
       <PH title="Clientes" sub={`${D.cli.length} clientes`} action={<Btn onClick={()=>setModal({})}>+ Nuevo cliente</Btn>}/>
       <SB val={q} set={setQ} ph="Buscar por nombre o teléfono..."/>
       {list.length===0?<Empty icon={<Icon n="users" s={26} c="var(--forest)"/>} title="Sin clientes" sub="Agregá tus clientes para llevar su historial." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
-        <div className="card" style={{overflow:'hidden'}}>
-        <div className="tbl tbl-sticky">
+        <div className="tbl tbl-sticky card">
           <table><thead><tr><th>Cliente</th><th>Teléfono</th><th className="nr">Pedidos</th><th className="nr">Total gastado</th><th></th></tr></thead>
           <tbody>{list.map(c=>{
             const peds=D.ped.filter(p=>p.cli_id===c.id);
@@ -988,7 +981,6 @@ function Cli({D,ops}){
               <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setSel(c.id)}><Icon n='eye' s={14}/></Btn><Btn v='g' sm onClick={()=>setModal(c)}><Icon n='edit' s={14}/></Btn><Btn v='g' sm onClick={()=>setDel(c)}><Icon n='trash' s={14}/></Btn></div></td>
             </tr>;
           })}</tbody></table>
-        </div>
         </div>
       }
       {modal!==null&&<CliModal c={modal} onSave={save} onClose={()=>setModal(null)}/>}
@@ -1045,8 +1037,7 @@ function Ped({D,ops}){
       </div>
       <SB val={q} set={setQ} ph="Buscar por cliente o descripción..."/>
       {list.length===0?<Empty icon={<Icon n="package" s={26} c="var(--forest)"/>} title="Sin pedidos" sub="Registrá tus pedidos para controlar entregas y cobros." action={<Btn onClick={()=>setModal({})}>+ Registrar</Btn>}/>:
-        <div className="card" style={{overflow:'hidden'}}>
-        <div className="tbl tbl-sticky">
+        <div className="tbl tbl-sticky card">
           <table><thead><tr><th>Cliente</th><th>Productos</th><th>Descripción</th><th>Entrega</th><th className="nr">Total</th><th className="nr">Saldo</th><th>Estado</th><th></th></tr></thead>
           <tbody>{list.map(p=>{
             const saldo=(p.total||0)-(p.adelanto||0);
@@ -1074,7 +1065,6 @@ function Ped({D,ops}){
               <td style={{verticalAlign:'top',paddingTop:8}}><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>nota(p)} title='Nota'><Icon n='print' s={14}/></Btn><Btn v='g' sm onClick={()=>setModal(p)}><Icon n='edit' s={14}/></Btn><Btn v='g' sm onClick={()=>setDel(p)}><Icon n='trash' s={14}/></Btn></div></td>
             </tr>;
           })}</tbody></table>
-        </div>
         </div>
       }
       {modal!==null&&<PedModal ped={modal} D={D} ops={ops} onSave={save} onClose={()=>setModal(null)}/>}
@@ -1227,7 +1217,7 @@ function Cal({D}){
           {(m.y!==new Date().getFullYear()||m.mo!==new Date().getMonth())&&<Btn v='s' sm onClick={()=>{const d=new Date();setM({y:d.getFullYear(),mo:d.getMonth()});}}>Hoy</Btn>}
         </div>
       </div>
-      <div className="card tbl" style={{overflow:'hidden'}}>
+      <div className="card" style={{overflow:'hidden'}}>
         <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',background:'var(--forest)'}}>
           {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d=><div key={d} style={{textAlign:'center',padding:'10px 0',fontSize:11,fontWeight:700,color:'var(--pistachio)',letterSpacing:'.05em'}}>{d}</div>)}
         </div>
