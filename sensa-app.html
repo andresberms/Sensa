@@ -559,7 +559,8 @@ function Ing({D,ops}){
       </div>
       <SB val={q} set={setQ} ph={tab==='ing'?'Buscar ingrediente o proveedor...':'Buscar material de empaque...'}/>
       {list.length===0?<Empty icon={<Icon n={tab==='ing'?'layers':'package'} s={26} c="var(--forest)"/>} title={`Sin ${tab==='ing'?'ingredientes':'empaques'}`} sub={tab==='ing'?'Agregá tus harinas, levaduras, sal y más.':'Agregá bolsas, stickers, etiquetas, cajas...'} action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
-        <div className="card tbl tbl-sticky" style={{overflow:'hidden'}}>
+        <div className="card" style={{overflow:'hidden'}}>
+        <div className="tbl tbl-sticky">
           <table>
             <thead><tr><th>{label}</th><th className="nr">Precio pack</th><th>Cantidad</th><th className="nr">Costo / unidad</th><th>Proveedor</th><th></th></tr></thead>
             <tbody>{list.map(i=>(
@@ -573,6 +574,7 @@ function Ing({D,ops}){
               </tr>
             ))}</tbody>
           </table>
+        </div>
         </div>
       }
       {modal!==null&&<IngModal ing={modal} onSave={save} onClose={()=>setModal(null)} sym={sym} label={label}/>}
@@ -791,7 +793,8 @@ function Calc({D,ops}){
       <PH title="Calculadora de Precios" sub={`${D.prod.length} productos`} action={<Btn onClick={()=>setModal({})}>+ Nuevo producto</Btn>}/>
       <SB val={q} set={setQ} ph="Buscar producto..."/>
       {list.length===0?<Empty icon={<Icon n="calc" s={26} c="var(--forest)"/>} title="Sin productos" sub="Calculá el precio de venta de tus panes." action={<Btn onClick={()=>setModal({})}>+ Crear producto</Btn>}/>:
-        <div className="card tbl tbl-sticky" style={{overflow:'hidden'}}>
+        <div className="card" style={{overflow:'hidden'}}>
+        <div className="tbl tbl-sticky">
           <table>
             <thead><tr><th>Producto</th><th>SKU</th><th className="nr">Costo real</th><th className="nr">Precio venta</th><th className="nr">Margen</th><th className="nr">₡/hora</th><th></th></tr></thead>
             <tbody>{list.map(p=>{
@@ -813,6 +816,7 @@ function Calc({D,ops}){
               </tr>;
             })}</tbody>
           </table>
+        </div>
         </div>
       }
       {modal!==null&&<ProdModal prod={modal} D={D} onSave={save} onClose={()=>setModal(null)}/>}
@@ -953,10 +957,12 @@ function Cli({D,ops}){
         </div>
         <h2 className="serif" style={{fontSize:18,color:'var(--forest)',marginBottom:12}}>Historial de pedidos</h2>
         {peds.length===0?<p style={{color:'var(--olive)'}}>Sin pedidos aún.</p>:
-          <div className="card tbl" style={{overflow:'hidden'}}>
+          <div className="card" style={{overflow:'hidden'}}>
+          <div className="tbl">
             <table><thead><tr><th>Fecha</th><th>Entrega</th><th>Descripción</th><th>Total</th><th>Estado</th></tr></thead>
             <tbody>{peds.map(p=><tr key={p.id}><td>{fdate(p.fecha)}</td><td>{fdate(p.fecha_e)}</td><td style={{fontSize:13,color:'var(--olive)'}}>{p.desc||'—'}</td><td style={{fontWeight:700}}>{fmt(p.total||0,sym)}</td><td><span className={`badge ${BADGE_E[p.estado]||'bc'}`}>{p.estado}</span></td></tr>)}</tbody>
             </table>
+          </div>
           </div>
         }
       </div>
@@ -967,7 +973,8 @@ function Cli({D,ops}){
       <PH title="Clientes" sub={`${D.cli.length} clientes`} action={<Btn onClick={()=>setModal({})}>+ Nuevo cliente</Btn>}/>
       <SB val={q} set={setQ} ph="Buscar por nombre o teléfono..."/>
       {list.length===0?<Empty icon={<Icon n="users" s={26} c="var(--forest)"/>} title="Sin clientes" sub="Agregá tus clientes para llevar su historial." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
-        <div className="card tbl tbl-sticky" style={{overflow:'hidden'}}>
+        <div className="card" style={{overflow:'hidden'}}>
+        <div className="tbl tbl-sticky">
           <table><thead><tr><th>Cliente</th><th>Teléfono</th><th className="nr">Pedidos</th><th className="nr">Total gastado</th><th></th></tr></thead>
           <tbody>{list.map(c=>{
             const peds=D.ped.filter(p=>p.cli_id===c.id);
@@ -980,6 +987,7 @@ function Cli({D,ops}){
               <td><div style={{display:'flex',gap:4}}><Btn v='g' sm onClick={()=>setSel(c.id)}><Icon n='eye' s={14}/></Btn><Btn v='g' sm onClick={()=>setModal(c)}><Icon n='edit' s={14}/></Btn><Btn v='g' sm onClick={()=>setDel(c)}><Icon n='trash' s={14}/></Btn></div></td>
             </tr>;
           })}</tbody></table>
+        </div>
         </div>
       }
       {modal!==null&&<CliModal c={modal} onSave={save} onClose={()=>setModal(null)}/>}
@@ -1036,7 +1044,8 @@ function Ped({D,ops}){
       </div>
       <SB val={q} set={setQ} ph="Buscar por cliente o descripción..."/>
       {list.length===0?<Empty icon={<Icon n="package" s={26} c="var(--forest)"/>} title="Sin pedidos" sub="Registrá tus pedidos para controlar entregas y cobros." action={<Btn onClick={()=>setModal({})}>+ Registrar</Btn>}/>:
-        <div className="card tbl tbl-sticky" style={{overflow:'hidden'}}>
+        <div className="card" style={{overflow:'hidden'}}>
+        <div className="tbl tbl-sticky">
           <table><thead><tr><th>Cliente</th><th>Productos</th><th>Descripción</th><th>Entrega</th><th className="nr">Total</th><th className="nr">Saldo</th><th>Estado</th><th></th></tr></thead>
           <tbody>{list.map(p=>{
             const saldo=(p.total||0)-(p.adelanto||0);
@@ -1065,6 +1074,7 @@ function Ped({D,ops}){
             </tr>;
           })}</tbody></table>
         </div>
+        </div>
       }
       {modal!==null&&<PedModal ped={modal} D={D} ops={ops} onSave={save} onClose={()=>setModal(null)}/>}
       {del&&<CDel what={`pedido de ${cl(del.cli_id)?.nombre||'cliente'}`} onOk={()=>{ops.del('ped',del.id);setDel(null);toast('Pedido eliminado','err');}} onNo={()=>setDel(null)}/>}
@@ -1082,14 +1092,14 @@ function PedModal({ped,D,ops,onSave,onClose}){
   const saveNewCli=()=>{if(!nc?.nombre?.trim())return;const nid=uid();ops.ups('cli',{id:nid,nombre:nc.nombre.trim(),tel:nc.tel||'',email:nc.email||'',notes:''});sf(p=>({...p,cli_id:nid}));setNc(null);toast('Cliente creado');};
   function recalc(items){
     const tot=Math.round(items.reduce((t,i)=>t+(+i.qty||1)*(+i.price||0),0));
-    const desc=items.map(i=>{const p=D.prod.find(x=>x.id===i.pid);return`${i.qty}x ${p?.nombre||'?'}`;}).join(', ');
-    sf(p=>({...p,items,total:tot,desc}));
+    sf(p=>({...p,items,total:tot}));
   }
-  function addItem(){
-    if(!ni.pid)return;
-    const prod=D.prod.find(p=>p.id===ni.pid);
+  function addItem(pid){
+    const prodId=pid||ni.pid;
+    if(!prodId)return;
+    const prod=D.prod.find(p=>p.id===prodId);
     if(!prod)return;
-    recalc([...f.items,{pid:ni.pid,qty:+ni.qty||1,price:prod.price,key:uid()}]);
+    recalc([...f.items,{pid:prodId,qty:1,price:prod.price,key:uid()}]);
     sni({pid:'',qty:1});
   }
   function updQty(key,qty){recalc(f.items.map(i=>i.key===key?{...i,qty:+qty||1}:i));}
@@ -1138,18 +1148,13 @@ function PedModal({ped,D,ops,onSave,onClose}){
           <span>Total</span><span>{fmt(itemsTotal,sym)}</span>
         </div>
       </div>}
-      <div style={{display:'flex',gap:8,marginBottom:16}}>
-        <select value={ni.pid} onChange={e=>sni(p=>({...p,pid:e.target.value}))} style={{flex:1}}>
-          <option value="">Agregar producto...</option>
+      <div style={{marginBottom:16}}>
+        <select value="" onChange={e=>{if(e.target.value)addItem(e.target.value);}} style={{width:'100%'}}>
+          <option value="">+ Agregar producto...</option>
           {D.prod.map(p=><option key={p.id} value={p.id}>{p.nombre}{p.sku?` · ${p.sku}`:''}</option>)}
         </select>
-        <input type="number" min="1" step="1" placeholder="Cant." value={ni.qty} onChange={e=>sni(p=>({...p,qty:+e.target.value||1}))} style={{width:68}}/>
-        <Btn onClick={addItem} disabled={!ni.pid}>+</Btn>
       </div>
-      <div className="field">
-        <label>Descripción del pedido <span style={{fontWeight:400,textTransform:'none',letterSpacing:0,color:'#aaa',fontSize:10}}>(se autorrellena al agregar productos)</span></label>
-        <textarea rows={2} style={{resize:'none'}} value={f.desc||''} onChange={s('desc')} placeholder="1x Hogaza, 2x Bollitos… o escribí a mano"/>
-      </div>
+      <FT label="Descripción" value={f.desc||''} onChange={s('desc')} placeholder="Detalles adicionales del pedido…"/>
       <div className="msec">Cobro</div>
       <div className="modal-g3">
         <FI label={`Total (${sym})`} type="number" step="50" value={f.total||''} onChange={s('total')}/>
