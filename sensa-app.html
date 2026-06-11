@@ -74,7 +74,7 @@
     .nr{text-align:right!important;font-feature-settings:"tnum";letter-spacing:-.01em;}
     /* ── Modals ── */
     .modal-bg{background:rgba(0,0,0,.5);backdrop-filter:blur(6px);position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;}
-    .modal-box{background:#fff;border-radius:18px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 32px 72px rgba(0,0,0,.24);}
+    .modal-box{background:#fff;border-radius:18px;width:100%;max-height:90vh;overflow-y:auto;overflow-x:hidden;box-shadow:0 32px 72px rgba(0,0,0,.24);}
     .modal-handle{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.15);margin:10px auto 0;flex-shrink:0;}
     .modal-head{background:var(--forest);border-radius:17px 17px 0 0;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
     .modal-body{padding:22px 24px;}
@@ -169,7 +169,7 @@
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────
-const LSK = 'sensa_v3', LSF = 'sensa_fb';
+const LSK = 'sensa_v3', LSF = 'sensa_fb', LSF_DATE = 'sensa_fb_date';
 const MONEDAS = [{value:'CRC',label:'Colones (₡)',sym:'₡'},{value:'USD',label:'Dólares ($)',sym:'$'}];
 const UNIDADES = ['kg','g','lt','ml','pz','taza','cucharada','cucharadita','sobre','lata','bolsa'];
 const ESTADOS = ['Cotización','Confirmado','En proceso','Listo','Entregado','Cancelado'];
@@ -1121,19 +1121,21 @@ function PedModal({ped,D,ops,onSave,onClose}){
       </div>
       {!f.fecha_e&&<div style={{background:'#FEF9C3',border:'1px solid #FDE68A',borderRadius:9,padding:'8px 14px',fontSize:12.5,color:'#92400E',marginBottom:12,display:'flex',alignItems:'center',gap:8}}><Icon n='alert' s={14} c='#92400E'/>Sin fecha de entrega — no aparecerá en el calendario</div>}
       <div className="msec">Productos del pedido</div>
-      {f.items.length>0&&<div style={{border:'1px solid #EEF0E8',borderRadius:10,overflow:'hidden',marginBottom:8}}>
-        <table><thead><tr><th>Producto</th><th style={{textAlign:'center'}}>Cant.</th><th>Precio unit.</th><th>Subtotal</th><th></th></tr></thead>
-        <tbody>{f.items.map(it=>{
-          const prod=D.prod.find(x=>x.id===it.pid);
-          return <tr key={it.key}>
-            <td style={{fontWeight:500}}>{prod?.nombre||'—'}{prod?.sku&&<span style={{fontSize:11,color:'var(--olive)',marginLeft:6,fontFamily:'monospace'}}>{prod.sku}</span>}</td>
-            <td style={{width:64,textAlign:'center'}}><input type="number" min="1" step="1" value={it.qty} onChange={e=>updQty(it.key,e.target.value)} style={{width:52,padding:'4px 6px',fontSize:13,textAlign:'center',borderRadius:7,border:'1.5px solid #E0E8D4',outline:'none'}}/></td>
-            <td style={{fontSize:13,color:'var(--olive)'}}>{fmt(it.price,sym)}</td>
-            <td style={{fontWeight:700,color:'var(--forest)'}}>{fmt((+it.qty||1)*(+it.price||0),sym)}</td>
-            <td><button onClick={()=>remItem(it.key)} style={{border:'none',background:'none',cursor:'pointer',color:'#ccc',fontSize:14,padding:'0 4px'}} onMouseEnter={e=>e.target.style.color='#e00'} onMouseLeave={e=>e.target.style.color='#ccc'}>✕</button></td>
-          </tr>;
-        })}</tbody></table>
-        <div style={{padding:'10px 16px',borderTop:'1px solid #EEF0E8',display:'flex',justifyContent:'space-between',fontWeight:700,color:'var(--forest)',fontSize:13.5,background:'#F9FBF5'}}>
+      {f.items.length>0&&<div style={{border:'1px solid #EEF0E8',borderRadius:10,marginBottom:8}}>
+        <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch',borderRadius:'10px 10px 0 0'}}>
+          <table style={{minWidth:340}}><thead><tr><th>Producto</th><th style={{textAlign:'center'}}>Cant.</th><th className="nr">Precio</th><th className="nr">Subtotal</th><th></th></tr></thead>
+          <tbody>{f.items.map(it=>{
+            const prod=D.prod.find(x=>x.id===it.pid);
+            return <tr key={it.key}>
+              <td style={{fontWeight:500,whiteSpace:'nowrap'}}>{prod?.nombre||'—'}{prod?.sku&&<span style={{fontSize:11,color:'var(--olive)',marginLeft:6,fontFamily:'monospace'}}>{prod.sku}</span>}</td>
+              <td style={{width:64,textAlign:'center'}}><input type="number" min="1" step="1" value={it.qty} onChange={e=>updQty(it.key,e.target.value)} style={{width:52,padding:'4px 6px',fontSize:13,textAlign:'center',borderRadius:7,border:'1.5px solid #E0E8D4',outline:'none'}}/></td>
+              <td className="nr" style={{fontSize:13,color:'var(--olive)',whiteSpace:'nowrap'}}>{fmt(it.price,sym)}</td>
+              <td className="nr" style={{fontWeight:700,color:'var(--forest)',whiteSpace:'nowrap'}}>{fmt((+it.qty||1)*(+it.price||0),sym)}</td>
+              <td><button onClick={()=>remItem(it.key)} style={{border:'none',background:'none',cursor:'pointer',color:'#ccc',fontSize:14,padding:'0 4px'}} onMouseEnter={e=>e.target.style.color='#e00'} onMouseLeave={e=>e.target.style.color='#ccc'}>✕</button></td>
+            </tr>;
+          })}</tbody></table>
+        </div>
+        <div style={{padding:'10px 16px',borderTop:'1px solid #EEF0E8',display:'flex',justifyContent:'space-between',fontWeight:700,color:'var(--forest)',fontSize:13.5,background:'#F9FBF5',borderRadius:'0 0 10px 10px'}}>
           <span>Total</span><span>{fmt(itemsTotal,sym)}</span>
         </div>
       </div>}
@@ -1430,6 +1432,33 @@ function Cfg({D,ops,synced}){
   );
 }
 
+// ── FIREBASE RULES BANNER ─────────────────────────────────────────────────
+function FbRulesBanner({daysLeft,onDismiss}){
+  const expired=daysLeft<=0;
+  const bg=expired?'#BE123C':'#92400E';
+  const bgLight=expired?'#FFF1F2':'#FEF9C3';
+  const border=expired?'#FECDD3':'#FDE68A';
+  return(
+    <div style={{background:bgLight,border:`1px solid ${border}`,borderRadius:10,padding:'10px 14px',marginBottom:16,display:'flex',alignItems:'flex-start',gap:10,flexWrap:'wrap'}}>
+      <Icon n='alert' s={16} c={bg} style={{flexShrink:0,marginTop:1}}/>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontWeight:700,fontSize:13,color:bg,marginBottom:2}}>
+          {expired?'Reglas de Firebase vencidas':'Reglas de Firebase por vencer'}
+        </div>
+        <div style={{fontSize:12,color:bg,opacity:.85,lineHeight:1.4}}>
+          {expired
+            ?'Las reglas de Firestore vencieron. La sincronización puede fallar.'
+            :`Vencen en ${daysLeft} día${daysLeft!==1?'s':''}. Actualizalas en Firebase Console para no perder sync.`}
+        </div>
+        <div style={{display:'flex',gap:8,marginTop:8,flexWrap:'wrap'}}>
+          <a href="https://console.firebase.google.com/project/sensa-panetteria/firestore/rules" target="_blank" rel="noopener" style={{fontSize:12,fontWeight:700,color:'#fff',background:bg,padding:'5px 12px',borderRadius:7,textDecoration:'none',display:'inline-flex',alignItems:'center',gap:4}}><Icon n='cloud' s={12} c='#fff'/>Ir a Firebase Console</a>
+          {!expired&&<button onClick={onDismiss} style={{fontSize:12,color:bg,background:'none',border:`1px solid ${border}`,borderRadius:7,padding:'5px 12px',cursor:'pointer',fontFamily:'Instrument Sans,sans-serif',fontWeight:600}}>Recordar mañana</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── BOTTOM NAV ────────────────────────────────────────────────────────────
 const BNAV=[
   {id:'home',label:'Inicio',icon:'home'},
@@ -1489,6 +1518,7 @@ function App(){
   const [page,setPage]=useState('home');
   const [mob,setMob]=useState(false);
   const [synced,setSynced]=useState(false);
+  const [fbDaysLeft,setFbDaysLeft]=useState(null);
   const unsubs=useRef({});
   useEffect(()=>{document.body.style.overflow=mob?'hidden':'';return()=>{document.body.style.overflow='';};},[mob]);
 
@@ -1507,23 +1537,41 @@ function App(){
     const saved = loadFB() || FB_CONFIG;
     localStorage.setItem(LSF, JSON.stringify(saved));
     const ok = initFB(saved.config, saved.workspaceId);
-    if(ok){ setSynced(true); subscribeAll(); }
+    if(ok){
+      setSynced(true);
+      // Track Firebase rules expiry (test mode = 30 days)
+      let fbDate = localStorage.getItem(LSF_DATE);
+      if(!fbDate){ fbDate = today(); localStorage.setItem(LSF_DATE, fbDate); }
+      const days = Math.floor((new Date() - new Date(fbDate)) / 86400000);
+      const left = 30 - days;
+      if(left <= 7){
+        const dismissed = localStorage.getItem('sensa_fb_dismiss');
+        if(dismissed !== today() || left <= 0) setFbDaysLeft(left);
+      }
+      subscribeAll(left);
+    }
     return()=>{Object.values(unsubs.current).forEach(u=>u&&u());};
   },[]);
 
   useEffect(()=>{saveLS(data);},[data]);
 
-  function subscribeAll(){
+  function onFbPermissionDenied(){
+    // Rules expired — force show banner regardless of dismiss
+    setFbDaysLeft(0);
+    setSynced(false);
+  }
+  function subscribeAll(daysLeft){
     ['ing','rec','prod','cli','ped','pack'].forEach(c=>{
       if(unsubs.current[c])unsubs.current[c]();
-      unsubs.current[c]=col(c).onSnapshot(snap=>{
-        const items=snap.docs.map(d=>({id:d.id,...d.data()}));
-        setData(p=>({...p,[c]:items}));
-      });
+      unsubs.current[c]=col(c).onSnapshot(
+        snap=>{const items=snap.docs.map(d=>({id:d.id,...d.data()}));setData(p=>({...p,[c]:items}));},
+        err=>{if(err.code==='permission-denied')onFbPermissionDenied();}
+      );
     });
-    unsubs.current['cfg']=col('config').doc('main').onSnapshot(doc=>{
-      if(doc.exists())setData(p=>({...p,cfg:{...p.cfg,...doc.data()}}));
-    });
+    unsubs.current['cfg']=col('config').doc('main').onSnapshot(
+      doc=>{if(doc.exists())setData(p=>({...p,cfg:{...p.cfg,...doc.data()}}));},
+      err=>{if(err.code==='permission-denied')onFbPermissionDenied();}
+    );
   }
 
   const ops=useMemo(()=>({
@@ -1532,16 +1580,15 @@ function App(){
       // Optimistic local update always (instant UI response)
       setData(p=>{const list=p[coll]||[];const ex=list.find(x=>x.id===final.id);return{...p,[coll]:ex?list.map(x=>x.id===final.id?final:x):[...list,final]};});
       // Then sync to Firebase if connected
-      if(synced){fbUpsert(coll,final).catch(()=>toast('Error al guardar en la nube','err'));}
+      if(synced){fbUpsert(coll,final).catch(e=>{if(e.code==='permission-denied')onFbPermissionDenied();else toast('Error al guardar en la nube','err');});}
     },
     del(coll,id){
-      // Optimistic local delete
       setData(p=>({...p,[coll]:(p[coll]||[]).filter(x=>x.id!==id)}));
-      if(synced){fbDel(coll,id).catch(()=>toast('Error al eliminar en la nube','err'));}
+      if(synced){fbDel(coll,id).catch(e=>{if(e.code==='permission-denied')onFbPermissionDenied();else toast('Error al eliminar en la nube','err');});}
     },
     saveCfg(cfg){
       setData(p=>({...p,cfg}));
-      if(synced){fbCfg(cfg).catch(()=>toast('Error al guardar config','err'));}
+      if(synced){fbCfg(cfg).catch(e=>{if(e.code==='permission-denied')onFbPermissionDenied();else toast('Error al guardar config','err');});}
     },
     replaceAll(k,v){setData(p=>({...p,[k]:v}));}
   }),[synced]);
@@ -1580,8 +1627,11 @@ function App(){
             <div style={{width:7,height:7,borderRadius:'50%',background:synced?'var(--pistachio)':'rgba(255,255,255,.2)',boxShadow:synced?'0 0 5px rgba(218,227,142,.5)':'none'}}/>
           </div>
         </div>
-        <div style={{flex:1,overflowY:'auto',background:'var(--cream)'}}>
-          <div style={{paddingBottom:'calc(72px + env(safe-area-inset-bottom, 0px))' }}>
+        <div style={{flex:1,overflowY:'auto',overflowX:'hidden',background:'var(--cream)'}}>
+          <div style={{paddingBottom:'calc(72px + env(safe-area-inset-bottom, 0px))'}}>
+            {fbDaysLeft!==null&&<div style={{padding:'12px 16px 0'}}>
+              <FbRulesBanner daysLeft={fbDaysLeft} onDismiss={()=>{localStorage.setItem('sensa_fb_dismiss',today());setFbDaysLeft(null);}}/>
+            </div>}
             {views[page]||views.home}
           </div>
         </div>
