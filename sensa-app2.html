@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <title>Sensa Panetteria</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sensa">
+  <meta name="theme-color" content="#34522A">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <style>
+    :root{
+      --cream:#F5F6EF;--pistachio:#DAE38E;--forest:#34522A;--olive:#818A6D;--cotton:#FFD2D8;--rose:#DC9FAB;
+      --ink:#21261C;--line:#E9ECDE;--forest-d:#2A4321;--red:#BE123C;
+      --sh1:0 1px 3px rgba(32,42,24,.06),0 1px 2px rgba(32,42,24,.05);
+      --sh2:0 10px 32px rgba(32,42,24,.13);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html{-webkit-text-size-adjust:100%;}
+    body{background:#F1F2EA;font-family:'Instrument Sans',-apple-system,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;}
+    h1,h2,h3,.serif{font-family:'Instrument Serif',Georgia,serif;font-weight:400;}
+    button{font-family:inherit;}
+    /* ── Animations ── */
+    @keyframes pIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes fade{from{opacity:0}to{opacity:1}}
+    @keyframes mIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+    @keyframes mUp{from{transform:translateY(60px);opacity:.4}to{transform:none;opacity:1}}
+    @keyframes toastIn{from{opacity:0;transform:translateY(-10px) scale(.95)}to{opacity:1;transform:none}}
+    .pv{animation:pIn .24s ease;}
+    /* ── Sidebar ── */
+    .sidebar{background:linear-gradient(170deg,var(--forest) 0%,var(--forest-d) 100%);width:230px;flex-shrink:0;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:26px 14px 20px;}
+    .sidebar-logo{font-family:'Instrument Serif',serif;font-size:38px;font-style:italic;color:var(--pistachio);line-height:1;letter-spacing:-.5px;}
+    .sidebar-sub{font-size:8.5px;letter-spacing:4.5px;text-transform:uppercase;color:rgba(218,227,142,.45);margin-top:4px;}
+    .nav-item{display:flex;align-items:center;gap:11px;padding:9.5px 12px;border-radius:11px;color:rgba(245,246,239,.62);font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s;margin:1px 0;-webkit-tap-highlight-color:transparent;}
+    .nav-item:hover{background:rgba(255,255,255,.07);color:var(--cream);}
+    .nav-item.active{background:rgba(218,227,142,.22);color:var(--pistachio);font-weight:700;}
+    /* ── Cards ── */
+    .card{background:#fff;border-radius:16px;box-shadow:var(--sh1);border:1px solid rgba(52,82,42,.05);}
+    .chov{transition:transform .15s,box-shadow .15s;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+    .chov:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(52,82,42,.12);}
+    .chov:active{transform:scale(.985);box-shadow:var(--sh1);}
+    /* ── List rows (estilo iOS) ── */
+    .lrow{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid #F1F3E9;cursor:pointer;transition:background .12s;-webkit-tap-highlight-color:transparent;}
+    .lrow:last-child{border-bottom:none;}
+    .lrow:hover{background:#F8FAF3;}
+    .lrow:active{background:#F0F3E7;}
+    .av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--pistachio),#C9D578);color:var(--forest);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;letter-spacing:.02em;}
+    /* ── Forms ── */
+    input,select,textarea{border:1.5px solid #DEE5CE;border-radius:11px;padding:10px 13px;width:100%;outline:none;font-size:14px;font-family:'Instrument Sans',sans-serif;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s;appearance:none;-webkit-appearance:none;}
+    select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23818A6D' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;}
+    input:focus,select:focus,textarea:focus{border-color:var(--forest);box-shadow:0 0 0 3px rgba(52,82,42,.1);}
+    input::placeholder,textarea::placeholder{color:#C2CCB8;}
+    label{font-size:11px;font-weight:700;color:var(--olive);display:block;margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase;}
+    .field{margin-bottom:14px;}
+    .msec{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--olive);padding-bottom:8px;border-bottom:1.5px solid #EEF0E6;margin:6px 0 13px;}
+    /* ── Buttons ── */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:11px;font-weight:600;font-size:13.5px;cursor:pointer;transition:all .13s;border:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+    .btn-p{background:var(--forest);color:#fff;padding:10px 20px;box-shadow:0 2px 8px rgba(52,82,42,.22);}
+    .btn-p:hover{background:var(--forest-d);}
+    .btn-p:active{transform:scale(.96);}
+    .btn-s{background:#fff;color:var(--forest);border:1.5px solid #CBD9B9;padding:9px 16px;}
+    .btn-s:hover{background:var(--cream);}
+    .btn-s:active{transform:scale(.96);background:#EAEEDD;}
+    .btn-g{background:transparent;color:var(--olive);padding:8px 10px;border-radius:9px;}
+    .btn-g:hover{background:#F0F2E8;color:var(--forest);}
+    .btn-g:active{transform:scale(.92);background:#E5E9D9;}
+    .btn-d{background:#FFF1F2;color:var(--red);border:1.5px solid #FECDD3;padding:9px 16px;}
+    .btn-d:hover{background:#FFE4E6;}
+    .btn-d:active{transform:scale(.96);}
+    .btn-sm{padding:6px 11px!important;font-size:12.5px!important;border-radius:9px!important;}
+    .btn:disabled{opacity:.35;cursor:not-allowed;}
+    /* ── Segmented + chips ── */
+    .seg{display:inline-flex;background:#E7EADB;border-radius:12px;padding:3px;gap:2px;}
+    .seg button{border:none;background:transparent;padding:7px 16px;border-radius:9px;font-size:13px;font-weight:600;color:var(--olive);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+    .seg button.on{background:#fff;color:var(--forest);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+    .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;margin-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+    .chips::-webkit-scrollbar{display:none;}
+    .chip{padding:6px 14px;border-radius:20px;border:1.5px solid #E0E5D2;background:#fff;color:var(--olive);font-weight:600;font-size:12.5px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+    .chip.on{background:var(--forest);border-color:var(--forest);color:#fff;}
+    .chip:active{transform:scale(.95);}
+    /* ── Badges ── */
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;line-height:1.4;}
+    .bg{background:#DFF0C8;color:#2D5A1B;}.bp{background:var(--cotton);color:#9D174D;}
+    .bc{background:#F2F4EC;color:var(--olive);border:1px solid #E2E7D4;}
+    .bl{background:#DBEAFE;color:#1E3A5F;}.brd{background:#FFE4E6;color:var(--red);}.by{background:#FEF3C7;color:#92400E;}
+    /* ── Tables (usos puntuales) ── */
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;padding:9px 14px;font-size:10.5px;font-weight:700;color:var(--olive);text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid #EEF0E6;background:#FAFBF5;white-space:nowrap;}
+    td{padding:10px 14px;font-size:13.5px;border-bottom:1px solid #F2F3EA;vertical-align:middle;}
+    tr:last-child td{border-bottom:none;}
+    .nr{text-align:right!important;font-feature-settings:"tnum";}
+    .tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    /* ── Modals ── */
+    .modal-bg{background:rgba(28,33,22,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:28px 16px;animation:fade .15s ease;}
+    .modal-box{background:#fff;border-radius:20px;width:100%;max-width:540px;max-height:86vh;max-height:86dvh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 72px rgba(0,0,0,.28);animation:mIn .2s ease;}
+    .modal-box.wide{max-width:660px;}
+    .modal-head{background:var(--forest);padding:15px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .modal-body{padding:20px 22px;overflow-y:auto;overflow-x:hidden;flex:1;min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+    .modal-foot{flex-shrink:0;display:flex;gap:10px;justify-content:flex-end;align-items:center;padding:13px 22px;border-top:1px solid var(--line);background:#FBFCF6;}
+    .mclose{width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.13);cursor:pointer;color:rgba(218,227,142,.8);display:flex;align-items:center;justify-content:center;transition:background .15s;-webkit-tap-highlight-color:transparent;}
+    .mclose:hover,.mclose:active{background:rgba(255,255,255,.25);}
+    /* ── Layout ── */
+    .sb-desktop{display:flex;flex-shrink:0;}
+    .mob-bar{display:none;}
+    .pp{padding:30px 26px;}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+    .mg2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .mg3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+    .ped-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr));gap:14px;align-items:start;}
+    .rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(270px,100%),1fr));gap:14px;}
+    .app-shell{display:flex;height:100vh;height:100dvh;overflow:hidden;}
+    input[type="date"]{min-height:42px;}
+    @media(hover:none){
+      .lrow:hover{background:inherit;}
+      .chov:hover{transform:none;box-shadow:var(--sh1);}
+      .nav-item:hover{background:none;color:rgba(245,246,239,.62);}
+      .nav-item.active{background:rgba(218,227,142,.22)!important;color:var(--pistachio)!important;}
+    }
+    /* ── Mobile ── */
+    @media(max-width:960px){
+      .sb-desktop{display:none!important;}
+      .mob-bar{display:flex!important;}
+      .bottom-nav{display:flex!important;}
+      .fab{display:flex!important;}
+      .pp{padding:18px 14px!important;}
+      .g4{grid-template-columns:1fr 1fr;}
+      input,select,textarea{font-size:16px!important;}
+      select.badge{font-size:12px!important;}
+      .hide-mob{display:none!important;}
+    }
+    /* ── Sheet estilo iOS solo en teléfonos ── */
+    @media(max-width:680px){
+      .g2,.mg2{grid-template-columns:1fr!important;}
+      .mg3{grid-template-columns:1fr 1fr!important;}
+      .cal-cell{min-height:54px!important;}
+      .modal-bg{align-items:flex-end;padding:0;}
+      .modal-box{border-radius:20px 20px 0 0;max-width:none;max-height:93vh;max-height:93dvh;animation:mUp .3s cubic-bezier(.32,.72,0,1);}
+      .modal-box.wide{max-width:none;}
+      .modal-box::before{content:'';display:block;width:38px;height:4.5px;border-radius:3px;background:rgba(0,0,0,.14);margin:9px auto 0;flex-shrink:0;}
+      .modal-head{background:#fff;padding:12px 18px 10px;}
+      .modal-head h2{color:var(--forest)!important;}
+      .mclose{background:#EFF1E7;color:var(--olive);}
+      .modal-body{padding:16px;}
+      .modal-foot{padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));}
+    }
+    @media(max-width:420px){.mg3{grid-template-columns:1fr!important;}}
+    /* ── Mobile header / nav / FAB ── */
+    .mob-bar{align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;background:var(--forest);}
+    .ham-btn{display:flex;flex-direction:column;justify-content:center;gap:4.5px;width:38px;height:38px;background:rgba(255,255,255,.1);border:none;border-radius:11px;cursor:pointer;padding:10px 9px;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+    .ham-btn:active{background:rgba(255,255,255,.22);}
+    .ham-btn span{display:block;width:100%;height:2px;background:var(--pistachio);border-radius:2px;}
+    .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(252,253,248,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(32,42,24,.07);z-index:40;padding-bottom:env(safe-area-inset-bottom,0px);}
+    .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 7px;gap:3px;border:none;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;min-height:54px;position:relative;}
+    .bnav-dot{position:absolute;top:5px;width:4px;height:4px;border-radius:50%;background:var(--forest);opacity:0;transition:opacity .2s;}
+    .bnav-icon{display:flex;align-items:center;justify-content:center;height:25px;color:var(--olive);transition:transform .15s,color .15s;}
+    .bnav-label{font-size:10px;font-weight:500;color:var(--olive);transition:all .2s;}
+    .bnav-item.active .bnav-dot{opacity:1;}
+    .bnav-item.active .bnav-icon{color:var(--forest);transform:scale(1.08);}
+    .bnav-item.active .bnav-label{color:var(--forest);font-weight:700;}
+    .bnav-item:active{opacity:.55;}
+    .fab{position:fixed;bottom:calc(70px + env(safe-area-inset-bottom,0px) + 14px);right:16px;width:54px;height:54px;border-radius:50%;background:var(--forest);color:#fff;border:none;cursor:pointer;box-shadow:0 5px 20px rgba(52,82,42,.4);z-index:35;display:none;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:transform .15s;}
+    .fab:active{transform:scale(.9);}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:11px;border:1.5px solid #CBD9B9;background:#fff;color:var(--forest);font-weight:600;font-size:13.5px;cursor:pointer;margin-bottom:16px;-webkit-tap-highlight-color:transparent;}
+    .back-btn:active{background:var(--cream);transform:scale(.97);}
+    .toast{animation:toastIn .22s ease;}
+    @media print{body>*{display:none!important;}#pa{display:block!important;}}
+    #pa{display:none;}
+    ::-webkit-scrollbar{width:5px;height:5px;}
+    ::-webkit-scrollbar-thumb{background:#C8D2B4;border-radius:3px;}
+  </style>
+</head>
+<body>
+
+<div id="root">
+  <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:14px;background:var(--cream)">
+    <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:42px;color:var(--forest)">sensa</div>
+    <div style="font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--olive)">Cargando…</div>
+  </div>
+</div>
+<div id="pa"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef } = React;
+
+// ── CONSTANTS ────────────────────────────────────────────────────────────
+const LSK='sensa_v3', LSF='sensa_fb', LSF_DATE='sensa_fb_date';
+const MONEDAS=[{value:'CRC',label:'Colones (₡)',sym:'₡'},{value:'USD',label:'Dólares ($)',sym:'$'}];
+const UNIDADES=['kg','g','lt','ml','pz','taza','cucharada','cucharadita','sobre','lata','bolsa'];
+const ESTADOS=['Cotización','Confirmado','En proceso','Listo','Entregado','Cancelado'];
+const BADGE_E={'Cotización':'bc','Confirmado':'bl','En proceso':'bp','Listo':'by','Entregado':'bg','Cancelado':'brd'};
+const NAV=[
+  {id:'home',label:'Inicio',icon:'home'},
+  {id:'ped',label:'Pedidos',icon:'package'},
+  {id:'cal',label:'Calendario',icon:'calendar'},
+  {id:'rec',label:'Recetas',icon:'book'},
+  {id:'calc',label:'Productos y precios',icon:'calc'},
+  {id:'ing',label:'Ingredientes',icon:'layers'},
+  {id:'cli',label:'Clientes',icon:'users'},
+  {id:'rep',label:'Reportes',icon:'chart'},
+  {id:'cfg',label:'Configuración',icon:'settings'},
+];
+const DEF={ing:[],rec:[],prod:[],cli:[],ped:[],pack:[],cfg:{nombre:'Sensa Panetteria',moneda:'CRC',sym:'₡',dir:'',tel:'',gastos_fijos:0,horas_mes:60,costos:[]}};
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// ── UTILS ────────────────────────────────────────────────────────────────
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function today(){return iso(new Date());}
+function fmt(n,sym='₡'){const v=+n||0;return sym==='₡'?'₡'+Math.round(v).toLocaleString('es-CR'):'$'+v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fdate(s){if(!s)return'—';return new Date(s+'T12:00').toLocaleDateString('es-CR',{day:'numeric',month:'short'});}
+function fdateY(s){if(!s)return'—';return new Date(s+'T12:00').toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'});}
+function frel(s){
+  if(!s)return'Sin fecha';
+  const d=Math.round((new Date(s+'T12:00')-new Date(today()+'T12:00'))/86400000);
+  if(d===0)return'Hoy';if(d===1)return'Mañana';if(d===-1)return'Ayer';
+  if(d>1&&d<7)return'En '+d+' días';
+  return fdate(s);
+}
+function loadLS(){try{const s=localStorage.getItem(LSK);if(!s)return DEF;const p=JSON.parse(s);return{...DEF,...p,pack:p.pack||[],cfg:{...DEF.cfg,...(p.cfg||{})}};}catch{return DEF;}}
+function saveLS(d){localStorage.setItem(LSK,JSON.stringify(d));}
+function loadFB(){try{const s=localStorage.getItem(LSF);return s?JSON.parse(s):null;}catch{return null;}}
+function recipeCost(r,ings){return(r.ing||[]).reduce((t,ri)=>{const i=ings.find(x=>x.id===ri.id);return i?t+(i.price/(i.qty||1))*(ri.qty||0):t;},0);}
+function packCost(packing,pack){return(packing||[]).reduce((t,pi)=>{const pk=pack.find(x=>x.id===pi.pid);return pk?t+(pk.price/(pk.qty||1))*(pi.qty||0):t;},0);}
+function cfgGastos(cfg){return(cfg.costos&&cfg.costos.length>0)?cfg.costos.reduce((s,c)=>s+(+c.monto||0),0):(cfg.gastos_fijos||0);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function initials(n){return(n||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();}
+function waHref(tel,text){let d=(tel||'').replace(/\D/g,'');if(d.length===8)d='506'+d;return'https://wa.me/'+d+'?text='+encodeURIComponent(text);}
+function prodAgg(peds,prods){
+  const m={};
+  peds.forEach(p=>(p.items||[]).forEach(it=>{m[it.pid]=(m[it.pid]||0)+(+it.qty||0);}));
+  return Object.entries(m).map(([pid,q])=>({nombre:prods.find(x=>x.id===pid)?.nombre||'?',q})).sort((a,b)=>b.q-a.q);
+}
+function printHTML(html){document.getElementById('pa').innerHTML=html;window.print();}
+
+// ── ICONS ────────────────────────────────────────────────────────────────
+const ICONS={
+  home:'M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8~~M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+  layers:'M12 2 2 7l10 5 10-5-10-5z~~M2 17l10 5 10-5~~M2 12l10 5 10-5',
+  book:'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z~~M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
+  calc:'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z~~M8 7h8~~M8 11h8~~M8 15h4',
+  users:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2~~M9 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8z~~M22 21v-2a4 4 0 0 0-3-3.87~~M16 3.13a4 4 0 0 1 0 7.75',
+  package:'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z~~M3.27 6.96L12 12.01l8.73-5.05~~M12 22.08V12',
+  calendar:'M8 2v4~~M16 2v4~~M3 10h18~~M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z',
+  chart:'M18 20V10~~M12 20V4~~M6 20v-6',
+  settings:'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z~~M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  edit:'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7~~M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z',
+  trash:'M3 6h18~~M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6~~M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
+  print:'M6 9V2h12v7~~M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2~~M6 14h12v8H6z',
+  scale:'M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z~~M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z~~M7 21h10~~M12 3v18~~M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2',
+  search:'M10 3a7 7 0 1 0 0 14A7 7 0 0 0 10 3z~~M21 21l-4.35-4.35',
+  plus:'M12 5v14~~M5 12h14',
+  check:'M20 6L9 17l-5-5',
+  x:'M18 6L6 18~~M6 6l12 12',
+  alert:'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z~~M12 9v4~~M12 17h.01',
+  cloud:'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z',
+  menu:'M3 12h18~~M3 6h18~~M3 18h18',
+  left:'M19 12H5~~M12 19l-7-7 7-7',
+  right:'M5 12h14~~M12 5l7 7-7 7',
+  bread:'M17.5 5A5.5 5.5 0 0 1 17.5 16H7a5 5 0 0 1 0-10h.21A5.5 5.5 0 0 1 17.5 5z~~M2.5 11.5a2.5 2.5 0 0 0 0 5H7',
+  wa:'M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z',
+  copy:'M20 9h-9a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2z~~M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1',
+  phone:'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z',
+  clock:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z~~M12 6v6l4 2',
+};
+function Icon({n,s=18,c='currentColor',sw=1.75,style}){
+  const d=ICONS[n];if(!d)return null;
+  return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" style={{display:'block',flexShrink:0,...style}}>
+    {d.split('~~').map((p,i)=><path key={i} d={p}/>)}
+  </svg>;
+}
+
+// ── TOAST ────────────────────────────────────────────────────────────────
+let _toast=null;
+function toast(msg,type='ok'){if(_toast)_toast({id:uid(),msg,type});}
+function Toaster(){
+  const[items,setItems]=useState([]);
+  useEffect(()=>{
+    _toast=t=>{setItems(p=>[...p,t]);setTimeout(()=>setItems(p=>p.filter(x=>x.id!==t.id)),2800);};
+    return()=>{_toast=null;};
+  },[]);
+  if(!items.length)return null;
+  return(
+    <div style={{position:'fixed',top:'calc(env(safe-area-inset-top,0px) + 66px)',left:'50%',transform:'translateX(-50%)',zIndex:200,display:'flex',flexDirection:'column',gap:8,pointerEvents:'none',alignItems:'center',maxWidth:'calc(100vw - 32px)'}}>
+      {items.map(t=>(
+        <div key={t.id} className="toast" style={{padding:'11px 18px',borderRadius:12,fontWeight:600,fontSize:13.5,background:t.type==='err'?'var(--red)':'var(--forest)',color:'#fff',boxShadow:'0 6px 24px rgba(0,0,0,.28)',display:'flex',alignItems:'center',gap:8}}>
+          <Icon n={t.type==='err'?'alert':'check'} s={15} c='#fff'/>{t.msg}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── ERROR BOUNDARY ───────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component{
+  state={err:null};
+  static getDerivedStateFromError(e){return{err:e};}
+  componentDidCatch(e,info){console.error('[Sensa]',e,info);}
+  render(){
+    if(this.state.err)return(
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--cream)',gap:16,padding:24,textAlign:'center'}}>
+        <div style={{width:60,height:60,borderRadius:'50%',background:'#EDF3E3',display:'flex',alignItems:'center',justifyContent:'center'}}><Icon n="bread" s={26} c="var(--forest)"/></div>
+        <h2 style={{color:'var(--forest)',fontSize:24}}>Algo salió mal</h2>
+        <p style={{color:'var(--olive)',fontSize:13.5,maxWidth:320}}>{this.state.err.message}</p>
+        <button className="btn btn-p" onClick={()=>this.setState({err:null})}>Reintentar</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
+// ── FIREBASE ─────────────────────────────────────────────────────────────
+let _db=null,_ws=null;
+function col(c){return _db.collection('ws').doc(_ws).collection(c);}
+function fbUpsert(c,doc){const{id,...d}=doc;return col(c).doc(id).set(d);}
+function fbDel(c,id){return col(c).doc(id).delete();}
+function fbCfg(d){return col('config').doc('main').set(d);}
+function initFB(config,ws){
+  try{
+    if(firebase.apps.length)firebase.apps.forEach(a=>a.delete());
+    firebase.initializeApp(config);
+    _db=firebase.firestore();_ws=ws;
+    _db.enablePersistence().catch(()=>{});
+    return true;
+  }catch(e){console.error(e);return false;}
+}
+
+// ── SMALL UI ─────────────────────────────────────────────────────────────
+function Btn({onClick,children,v='p',sm,disabled,style,title}){
+  return <button onClick={onClick} disabled={disabled} title={title} style={style} className={'btn btn-'+v+(sm?' btn-sm':'')}>{children}</button>;
+}
+function Modal({title,onClose,children,footer,wide}){
+  useEffect(()=>{
+    const h=e=>e.key==='Escape'&&onClose();
+    window.addEventListener('keydown',h);
+    document.body.style.overflow='hidden';
+    return()=>{window.removeEventListener('keydown',h);document.body.style.overflow='';};
+  },[onClose]);
+  return ReactDOM.createPortal(
+    <div className="modal-bg" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className={'modal-box'+(wide?' wide':'')}>
+        <div className="modal-head">
+          <h2 style={{fontSize:19,fontStyle:'italic',color:'var(--pistachio)'}}>{title}</h2>
+          <button className="mclose" onClick={onClose} aria-label="Cerrar"><Icon n='x' s={14}/></button>
+        </div>
+        <div className="modal-body">{children}</div>
+        {footer&&<div className="modal-foot">{footer}</div>}
+      </div>
+    </div>,
+    document.body
+  );
+}
+function F({label,children}){return <div className="field"><label>{label}</label>{children}</div>;}
+function FI({label,...p}){return <F label={label}><input {...p}/></F>;}
+function FS({label,opts,...p}){return <F label={label}><select {...p}>{opts.map(o=><option key={o.v??o} value={o.v??o}>{o.l??o}</option>)}</select></F>;}
+function FT({label,...p}){return <F label={label}><textarea rows={3} style={{resize:'none'}} {...p}/></F>;}
+function CDel({what,onOk,onNo}){
+  return <Modal title="Eliminar" onClose={onNo}><p style={{color:'#555',marginBottom:20,fontSize:14}}>¿Eliminar <strong>{what}</strong>? No se puede deshacer.</p><div style={{display:'flex',gap:12,justifyContent:'flex-end'}}><Btn v='s' onClick={onNo}>Cancelar</Btn><Btn v='d' onClick={onOk}><Icon n='trash' s={14}/> Eliminar</Btn></div></Modal>;
+}
+function CConfirm({title,body,okLabel='Confirmar',danger,onOk,onNo}){
+  return <Modal title={title} onClose={onNo}><p style={{color:'#555',marginBottom:20,fontSize:14}}>{body}</p><div style={{display:'flex',gap:12,justifyContent:'flex-end'}}><Btn v='s' onClick={onNo}>Cancelar</Btn><Btn v={danger?'d':'p'} onClick={onOk}>{okLabel}</Btn></div></Modal>;
+}
+function DelInModal({onDelete}){
+  if(!onDelete)return <span/>;
+  return <button className="btn btn-g btn-sm" onClick={onDelete} style={{color:'var(--red)',marginRight:'auto'}}><Icon n='trash' s={14}/> Eliminar</button>;
+}
+function Empty({icon,title,sub,action}){
+  return <div className="pv" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'72px 20px',textAlign:'center'}}>
+    <div style={{width:64,height:64,borderRadius:'50%',background:'#EAF0E0',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>{icon}</div>
+    <h3 style={{fontSize:21,color:'var(--forest)',marginBottom:6}}>{title}</h3>
+    <p style={{fontSize:13.5,color:'var(--olive)',maxWidth:280,marginBottom:22}}>{sub}</p>
+    {action}
+  </div>;
+}
+function PH({title,sub,action}){
+  return <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:22,gap:12}}>
+    <div>
+      <h1 style={{fontSize:30,fontStyle:'italic',color:'var(--forest)',lineHeight:1.1}}>{title}</h1>
+      {sub&&<p style={{fontSize:13,color:'var(--olive)',marginTop:5}}>{sub}</p>}
+    </div>
+    {action&&<div className="hide-mob" style={{flexShrink:0,marginTop:4}}>{action}</div>}
+  </div>;
+}
+function SB({val,set,ph}){
+  return <div className="card" style={{display:'flex',alignItems:'center',gap:9,padding:'11px 16px',marginBottom:14,borderRadius:13}}>
+    <Icon n='search' s={16} c='#B7C2AC'/>
+    <input value={val} onChange={e=>set(e.target.value)} placeholder={ph||'Buscar...'} style={{border:'none',boxShadow:'none',padding:0,background:'transparent',fontSize:14,flex:1,borderRadius:0}}/>
+    {val&&<button onClick={()=>set('')} style={{border:'none',background:'#EFF1E7',borderRadius:'50%',width:22,height:22,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--olive)'}}><Icon n='x' s={11}/></button>}
+  </div>;
+}
+function Fab({onClick,label}){
+  return ReactDOM.createPortal(
+    <button className="fab" onClick={onClick} aria-label={label}><Icon n='plus' s={24} c='#fff'/></button>,
+    document.body
+  );
+}
+// ── SETUP WIZARD ─────────────────────────────────────────────────────────
+function Setup({onDone,onSkip}){
+  const [step,setStep]=useState(0);
+  const [raw,setRaw]=useState('');
+  const [cfg,setCfg]=useState(null);
+  const [wsId,setWsId]=useState('sensa');
+  const [err,setErr]=useState('');
+  function parse(){
+    try{
+      const m=raw.match(/\{[\s\S]*\}/);
+      if(!m)throw new Error();
+      const c=m[0].replace(/([a-zA-Z_]\w*)(\s*:)/g,'"$1"$2').replace(/'/g,'"').replace(/,(\s*[}\]])/g,'$1');
+      const p=JSON.parse(c);
+      if(!p.apiKey||!p.projectId)throw new Error();
+      setCfg(p);setErr('');setStep(3);
+    }catch{setErr('No se pudo leer. Copiá el bloque completo que incluye las llaves { }.');}
+  }
+  function connect(){
+    if(!cfg)return;
+    const ok=initFB(cfg,wsId);
+    if(ok){localStorage.setItem(LSF,JSON.stringify({config:cfg,workspaceId:wsId}));onDone();}
+    else setErr('No se pudo conectar. Revisá el config.');
+  }
+  const Li=({items})=><ol style={{listStyle:'none',display:'flex',flexDirection:'column',gap:10}}>
+    {items.map((s,i)=><li key={i} style={{display:'flex',gap:10,fontSize:13}}>
+      <span style={{width:22,height:22,borderRadius:'50%',background:'var(--forest)',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,flexShrink:0}}>{i+1}</span>
+      <span>{s}</span>
+    </li>)}
+  </ol>;
+  const steps=[
+    {title:'Crear proyecto Firebase',body:<>
+      <div className="card" style={{background:'var(--cream)',padding:16,marginBottom:16}}>
+        <Li items={[<>Entrá a <a href="https://console.firebase.google.com" target="_blank" rel="noopener" style={{color:'var(--forest)'}}>console.firebase.google.com</a></>,<>Clic en <strong>"Agregar proyecto"</strong></>,<>Nombre: <strong>sensa-panetteria</strong> → Continuar</>,<>Desactivá Analytics → <strong>Crear proyecto</strong></>,<>Clic en el ícono <strong>Web ( &lt;/&gt; )</strong></>,<>Nombre: <strong>sensa-app</strong> → Registrar</>]}/>
+      </div>
+      <Btn onClick={()=>setStep(1)}>Tengo el proyecto →</Btn>
+    </>},
+    {title:'Activar base de datos',body:<>
+      <div className="card" style={{background:'var(--cream)',padding:16,marginBottom:16}}>
+        <Li items={[<>Menú izquierdo → <strong>Firestore Database</strong></>,<>Clic en <strong>"Crear base de datos"</strong></>,<>Elegí <strong>"Modo de prueba"</strong> → Siguiente</>,<>Ubicación <strong>us-central1</strong> → Listo</>]}/>
+      </div>
+      <div style={{display:'flex',gap:12}}><Btn v='s' onClick={()=>setStep(0)}>← Atrás</Btn><Btn onClick={()=>setStep(2)}>Listo →</Btn></div>
+    </>},
+    {title:'Copiar la configuración',body:<>
+      <div className="card" style={{background:'var(--cream)',padding:16,marginBottom:16}}>
+        <Li items={[<>⚙️ → <strong>Configuración del proyecto</strong></>,<>Bajá a <strong>"Tus apps"</strong> → SDK → <strong>Configuración</strong></>,<>Copiá el bloque <code style={{background:'rgba(0,0,0,.06)',padding:'1px 6px',borderRadius:4}}>firebaseConfig</code></>]}/>
+      </div>
+      <F label="Pegá el bloque aquí">
+        <textarea value={raw} onChange={e=>setRaw(e.target.value)} rows={6} placeholder={'const firebaseConfig = {\n  apiKey: "...",\n  projectId: "...",\n};'} style={{fontFamily:'monospace',fontSize:12,resize:'none'}}/>
+      </F>
+      {err&&<p style={{color:'var(--red)',fontSize:13,marginBottom:12}}>{err}</p>}
+      <div style={{display:'flex',gap:12}}><Btn v='s' onClick={()=>setStep(1)}>← Atrás</Btn><Btn onClick={parse} disabled={!raw.trim()}>Continuar →</Btn></div>
+    </>},
+    {title:'Nombre de tu espacio',body:<>
+      <p style={{fontSize:13,color:'var(--olive)',marginBottom:16}}>Usá el mismo nombre en todos tus dispositivos para que se sincronicen.</p>
+      <FI label="ID del espacio de trabajo" value={wsId} onChange={e=>setWsId(e.target.value.toLowerCase().replace(/\s+/g,'-'))} placeholder="sensa"/>
+      {err&&<p style={{color:'var(--red)',fontSize:13,marginBottom:12}}>{err}</p>}
+      <div style={{display:'flex',gap:12}}><Btn v='s' onClick={()=>setStep(2)}>← Atrás</Btn><Btn onClick={connect} disabled={!wsId}>Conectar y sincronizar</Btn></div>
+    </>},
+  ];
+  return(
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:16,background:'var(--cream)'}}>
+      <div style={{width:'100%',maxWidth:480}}>
+        <div style={{textAlign:'center',marginBottom:32}}>
+          <div className="serif" style={{fontSize:44,fontStyle:'italic',color:'var(--forest)'}}>sensa</div>
+          <div style={{fontSize:10,letterSpacing:4,textTransform:'uppercase',color:'var(--olive)'}}>Panetteria</div>
+        </div>
+        <div className="card" style={{padding:24}}>
+          <div style={{display:'flex',gap:4,marginBottom:24}}>
+            {steps.map((_,i)=><div key={i} style={{height:4,flex:1,borderRadius:2,background:i<=step?'var(--forest)':'#E2E8D8',transition:'background .3s'}}/>)}
+          </div>
+          <h2 style={{fontSize:20,color:'var(--forest)',marginBottom:16}}>{steps[step].title}</h2>
+          {steps[step].body}
+          <button onClick={onSkip} style={{marginTop:16,fontSize:12,color:'var(--olive)',background:'none',border:'none',cursor:'pointer',textDecoration:'underline',display:'block',width:'100%',textAlign:'center'}}>
+            Usar sin sincronización (solo este dispositivo)
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────────────
+function Home({D,go}){
+  const {sym}=D.cfg;
+  const hoy=today(),mes=hoy.slice(0,7);
+  const activos=D.ped.filter(p=>!['Entregado','Cancelado'].includes(p.estado));
+  const ing=D.ped.filter(p=>p.estado==='Entregado'&&(p.fecha_e||p.fecha||'').startsWith(mes)).reduce((s,p)=>s+(+p.total||0),0);
+  const cobros=D.ped.filter(p=>['Listo','Entregado'].includes(p.estado)&&(p.total||0)-(p.adelanto||0)>0.01);
+  const prox=D.ped.filter(p=>p.fecha_e>=hoy&&!['Entregado','Cancelado'].includes(p.estado)).sort((a,b)=>a.fecha_e.localeCompare(b.fecha_e));
+  const hoyPeds=prox.filter(p=>p.fecha_e===hoy);
+  const hornear=prodAgg(hoyPeds,D.prod);
+  const cl=id=>D.cli.find(c=>c.id===id);
+  const h=new Date().getHours();
+  const Row=({p,right})=>(
+    <div key={p.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderBottom:'1px solid #F2F3EA',gap:10}}>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:13.5,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cl(p.cli_id)?.nombre||'Sin cliente'}</div>
+        <div style={{fontSize:12,color:'var(--olive)',marginTop:2}}>{frel(p.fecha_e)}</div>
+      </div>
+      {right}
+    </div>
+  );
+  return(
+    <div className="pp pv" style={{maxWidth:920,margin:'0 auto'}}>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontSize:32,fontStyle:'italic',color:'var(--forest)'}}>
+          {h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'}
+        </h1>
+        <p style={{fontSize:13,color:'var(--olive)',marginTop:4,textTransform:'capitalize'}}>{new Date().toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'})}</p>
+      </div>
+      <div className="g4" style={{marginBottom:18}}>
+        {[
+          {l:'Pedidos activos',v:activos.length,i:'package',bg:'linear-gradient(135deg,#EEF5E6,#E2EDD4)',c:'var(--forest)',p:'ped'},
+          {l:'Ingresos del mes',v:fmt(ing,sym),i:'chart',bg:'linear-gradient(135deg,#F4F8F0,#E9F0DF)',c:'var(--forest)',p:'rep'},
+          {l:'Entregas próximas',v:prox.length,i:'calendar',bg:'linear-gradient(135deg,#FDEEF1,#FAE0E6)',c:'#9D174D',p:'cal'},
+          {l:'Cobros pendientes',v:cobros.length,i:'alert',bg:'linear-gradient(135deg,#FFF0F1,#FFE3E6)',c:'var(--red)',p:'ped'},
+        ].map(s=>(
+          <div key={s.l} onClick={()=>go(s.p)} className="card chov" style={{padding:'17px 18px',background:s.bg,border:'none'}}>
+            <div style={{width:34,height:34,borderRadius:10,background:'rgba(255,255,255,.65)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:12}}>
+              <Icon n={s.i} s={17} c={s.c}/>
+            </div>
+            <div className="serif" style={{fontSize:'clamp(19px,5.5vw,26px)',color:s.c,lineHeight:1,overflowWrap:'anywhere'}}>{s.v}</div>
+            <div style={{fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:s.c,opacity:.6,marginTop:6}}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+      {hoyPeds.length>0&&(
+        <div className="card" style={{padding:20,marginBottom:18,background:'linear-gradient(135deg,#34522A,#2A4321)',border:'none'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+            <Icon n='bread' s={18} c='var(--pistachio)'/>
+            <h2 style={{fontSize:18,fontStyle:'italic',color:'var(--pistachio)'}}>Para hoy — {hoyPeds.length} entrega{hoyPeds.length>1?'s':''}</h2>
+          </div>
+          {hornear.length>0&&(
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+              {hornear.map(x=><span key={x.nombre} style={{background:'rgba(218,227,142,.18)',color:'var(--pistachio)',borderRadius:20,padding:'5px 13px',fontSize:12.5,fontWeight:600}}>{x.q}× {x.nombre}</span>)}
+            </div>
+          )}
+          {hoyPeds.map(p=>(
+            <div key={p.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderTop:'1px solid rgba(255,255,255,.1)',gap:10}}>
+              <span style={{color:'var(--cream)',fontSize:13.5,fontWeight:600}}>{cl(p.cli_id)?.nombre||'Sin cliente'}</span>
+              <span style={{color:'var(--pistachio)',fontWeight:700,fontSize:13.5}}>{fmt(p.total||0,sym)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="g2" style={{gap:16,alignItems:'start'}}>
+        <div className="card" style={{padding:20}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+            <h2 style={{fontSize:18,fontStyle:'italic',color:'var(--forest)'}}>Próximas entregas</h2>
+            <button onClick={()=>go('ped')} style={{fontSize:12,color:'var(--olive)',background:'none',border:'none',cursor:'pointer',fontWeight:600}}>Ver todos →</button>
+          </div>
+          {prox.length===0?<p style={{fontSize:13,color:'var(--olive)',textAlign:'center',padding:'20px 0',opacity:.6}}>Sin entregas próximas ✓</p>:
+            prox.slice(0,5).map(p=><Row key={p.id} p={p} right={
+              <div style={{textAlign:'right',flexShrink:0}}>
+                <div style={{fontSize:13.5,fontWeight:700,color:'var(--forest)'}}>{fmt(p.total||0,sym)}</div>
+                <span className={'badge '+(BADGE_E[p.estado]||'bc')} style={{marginTop:3}}>{p.estado}</span>
+              </div>
+            }/>)
+          }
+        </div>
+        <div className="card" style={{padding:20}}>
+          <h2 style={{fontSize:18,fontStyle:'italic',color:'var(--forest)',marginBottom:12}}>Cobros pendientes</h2>
+          {cobros.length===0?<p style={{fontSize:13,color:'var(--olive)',textAlign:'center',padding:'20px 0',opacity:.6}}>Todo cobrado ✓</p>:
+            cobros.slice(0,5).map(p=><Row key={p.id} p={p} right={
+              <div style={{fontWeight:700,color:'var(--red)',flexShrink:0}}>{fmt((p.total||0)-(p.adelanto||0),sym)}</div>
+            }/>)
+          }
+        </div>
+      </div>
+    </div>
+  );
+}
+// ── INGREDIENTES & EMPAQUES ──────────────────────────────────────────────
+function Ing({D,ops}){
+  const [q,setQ]=useState('');
+  const [modal,setModal]=useState(null);
+  const [del,setDel]=useState(null);
+  const [tab,setTab]=useState('ing');
+  const {sym}=D.cfg;
+  const src=tab==='ing'?D.ing:D.pack;
+  const list=useMemo(()=>src.filter(i=>(i.nombre+' '+(i.prov||'')).toLowerCase().includes(q.toLowerCase())).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'')),[src,q]);
+  const label=tab==='ing'?'Ingrediente':'Empaque';
+  const save=d=>{ops.ups(tab,{...d,price:+d.price||0,qty:+d.qty||1},modal?.id);setModal(null);toast(modal?.id?label+' actualizado':label+' agregado');};
+  return(
+    <div className="pp pv" style={{maxWidth:760,margin:'0 auto'}}>
+      <PH title="Ingredientes" sub={D.ing.length+' ingredientes · '+D.pack.length+' empaques'} action={<Btn onClick={()=>setModal({})}><Icon n='plus' s={15}/> Agregar</Btn>}/>
+      <div className="seg" style={{marginBottom:14}}>
+        <button className={tab==='ing'?'on':''} onClick={()=>{setTab('ing');setQ('');}}>Ingredientes ({D.ing.length})</button>
+        <button className={tab==='pack'?'on':''} onClick={()=>{setTab('pack');setQ('');}}>Empaques ({D.pack.length})</button>
+      </div>
+      <SB val={q} set={setQ} ph={tab==='ing'?'Buscar ingrediente o proveedor...':'Buscar empaque...'}/>
+      {list.length===0?<Empty icon={<Icon n={tab==='ing'?'layers':'package'} s={26} c="var(--forest)"/>} title={'Sin '+(tab==='ing'?'ingredientes':'empaques')} sub={tab==='ing'?'Agregá tus harinas, levaduras, sal y más.':'Agregá bolsas, stickers, etiquetas, cajas...'} action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
+        <div className="card" style={{overflow:'hidden'}}>
+          {list.map(i=>(
+            <div key={i.id} className="lrow" onClick={()=>setModal(i)}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:600,fontSize:14,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{i.nombre}</div>
+                <div style={{fontSize:12,color:'var(--olive)',marginTop:2}}>{fmt(i.price,sym)} / {i.qty} {i.unit}{i.prov?' · '+i.prov:''}</div>
+              </div>
+              <div style={{textAlign:'right',flexShrink:0}}>
+                <div style={{fontWeight:700,color:'var(--forest)',fontSize:14}}>{fmt(i.price/(i.qty||1),sym)}</div>
+                <div style={{fontSize:11,color:'var(--olive)'}}>por {i.unit}</div>
+              </div>
+              <Icon n='right' s={14} c='#C9D2BE'/>
+            </div>
+          ))}
+        </div>
+      }
+      {modal!==null&&<IngModal ing={modal} onSave={save} onClose={()=>setModal(null)} sym={sym} label={label}
+        onDelete={modal.id?()=>{setDel(modal);setModal(null);}:null}/>}
+      {del&&<CDel what={del.nombre} onOk={()=>{ops.del(tab,del.id);setDel(null);toast(label+' eliminado','err');}} onNo={()=>setDel(null)}/>}
+      <Fab onClick={()=>setModal({})} label={'Nuevo '+label}/>
+    </div>
+  );
+}
+function IngModal({ing,onSave,onClose,sym,label,onDelete}){
+  const[f,sf]=useState({nombre:'',price:'',qty:'1',unit:label==='Empaque'?'pz':'kg',prov:'',notes:'',...ing});
+  const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
+  const cu=(+f.qty>0)?(+f.price||0)/+f.qty:0;
+  return(
+    <Modal title={ing.id?'Editar '+label.toLowerCase():'Nuevo '+label.toLowerCase()} onClose={onClose} footer={<>
+      <DelInModal onDelete={onDelete}/>
+      <Btn v='s' onClick={onClose}>Cancelar</Btn>
+      <Btn onClick={()=>f.nombre.trim()&&onSave(f)} disabled={!f.nombre.trim()}>Guardar</Btn>
+    </>}>
+      <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder={label==='Empaque'?'Ej: Bolsa Kraft grande':'Ej: Harina de trigo'}/>
+      <div className="mg2">
+        <FI label="Precio de compra" type="number" inputMode="decimal" value={f.price} onChange={s('price')} placeholder="0"/>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+          <FI label="Cantidad" type="number" inputMode="decimal" step=".001" value={f.qty} onChange={s('qty')} placeholder="1"/>
+          <FS label="Unidad" value={f.unit} onChange={s('unit')} opts={UNIDADES}/>
+        </div>
+      </div>
+      {cu>0&&<div style={{background:'#F0F7E8',borderRadius:10,padding:'9px 13px',marginBottom:14,fontSize:13,fontWeight:600,color:'var(--forest)'}}>Costo por {f.unit}: {fmt(cu,sym)}</div>}
+      <FI label="Proveedor" value={f.prov||''} onChange={s('prov')} placeholder="Nombre del proveedor"/>
+      <FT label="Notas" value={f.notes||''} onChange={s('notes')} placeholder="Observaciones..."/>
+    </Modal>
+  );
+}
+
+// ── RECETAS ──────────────────────────────────────────────────────────────
+function Rec({D,ops}){
+  const [q,setQ]=useState('');
+  const [modal,setModal]=useState(null);
+  const [del,setDel]=useState(null);
+  const [bas,setBas]=useState(null);
+  const {sym}=D.cfg;
+  const list=useMemo(()=>D.rec.filter(r=>(r.nombre+' '+(r.cat||'')).toLowerCase().includes(q.toLowerCase())).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'')),[D.rec,q]);
+  const save=d=>{ops.ups('rec',{...d,rend:+d.rend||0,ing:(d.ing||[]).map(({key,...i})=>({...i,qty:+i.qty||0}))},modal?.id);setModal(null);toast(modal?.id?'Receta actualizada':'Receta creada');};
+  return(
+    <div className="pp pv" style={{maxWidth:960,margin:'0 auto'}}>
+      <PH title="Recetas" sub={D.rec.length+' recetas'} action={<Btn onClick={()=>setModal({})}><Icon n='plus' s={15}/> Nueva receta</Btn>}/>
+      <SB val={q} set={setQ} ph="Buscar receta o categoría..."/>
+      {list.length===0?<Empty icon={<Icon n="book" s={26} c="var(--forest)"/>} title="Sin recetas" sub="Cargá tus masas, rellenos y coberturas." action={<Btn onClick={()=>setModal({})}>+ Crear receta</Btn>}/>:
+        <div className="rec-grid">
+          {list.map(r=>{
+            const costo=recipeCost(r,D.ing);
+            const usadaEn=D.prod.filter(p=>(p.recs||[]).some(rc=>rc.rid===r.id)).length;
+            return(
+              <div key={r.id} className="card chov" style={{padding:18,display:'flex',flexDirection:'column'}} onClick={()=>setModal(r)}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8,marginBottom:8}}>
+                  <div style={{fontWeight:700,fontSize:15,lineHeight:1.3}}>{r.nombre}</div>
+                  <button className="btn btn-g btn-sm" title="Báscula" onClick={e=>{e.stopPropagation();setBas(r);}} style={{flexShrink:0,marginTop:-4,marginRight:-6}}><Icon n='scale' s={16}/></button>
+                </div>
+                <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:10}}>
+                  {r.cat&&<span className="badge bg" style={{fontSize:10.5}}>{r.cat}</span>}
+                  <span className="badge bc" style={{fontSize:10.5,opacity:usadaEn?1:.55}}>{usadaEn?usadaEn+' producto'+(usadaEn>1?'s':''):'Sin uso'}</span>
+                </div>
+                <div style={{fontSize:12,color:'var(--olive)',marginBottom:12}}>{r.rend||'?'} {r.rend_u||'pz'} · {(r.ing||[]).length} ingredientes</div>
+                <div style={{marginTop:'auto',borderTop:'1px solid #F0F2EA',paddingTop:10,display:'flex',justifyContent:'space-between',alignItems:'baseline'}}>
+                  <span style={{fontSize:12,color:'var(--olive)'}}>Costo</span>
+                  <div style={{textAlign:'right'}}>
+                    <div style={{fontWeight:700,color:'var(--forest)',fontSize:14.5}}>{fmt(costo,sym)}</div>
+                    {r.rend>0&&<div style={{fontSize:11.5,color:'var(--olive)'}}>{fmt(costo/r.rend,sym)} / {r.rend_u||'pz'}</div>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      }
+      {modal!==null&&<RecModal rec={modal} ings={D.ing} ops={ops} onSave={save} onClose={()=>setModal(null)} sym={sym}
+        onDelete={modal.id?()=>{setDel(modal);setModal(null);}:null}/>}
+      {bas&&<BascModal rec={bas} ings={D.ing} sym={sym} onClose={()=>setBas(null)}/>}
+      {del&&<CDel what={del.nombre} onOk={()=>{ops.del('rec',del.id);setDel(null);toast('Receta eliminada','err');}} onNo={()=>setDel(null)}/>}
+      <Fab onClick={()=>setModal({})} label="Nueva receta"/>
+    </div>
+  );
+}
+function RecModal({rec,ings,ops,onSave,onClose,sym,onDelete}){
+  const[f,sf]=useState({nombre:'',cat:'',rend:'',rend_u:'pz',inst:'',notes:'',ing:[],...rec,ing:(rec.ing||[]).map(x=>({...x,key:x.key||uid()}))});
+  const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
+  const[ni,sni]=useState({id:'',qty:''});
+  const[nig,setNig]=useState(null);
+  const sorted=useMemo(()=>[...ings].sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'')),[ings]);
+  const saveNewIng=()=>{
+    if(!nig?.nombre?.trim()||!nig.qty)return;
+    const nid=uid();
+    ops.ups('ing',{id:nid,nombre:nig.nombre.trim(),price:+(nig.price||0),qty:+(nig.qty||1),unit:nig.unit||'g',prov:'',notes:''});
+    sni({id:nid,qty:''});setNig(null);toast('Ingrediente creado');
+  };
+  const add=()=>{
+    if(!ni.id||!ni.qty)return;
+    if(f.ing.some(x=>x.id===ni.id)){toast('Ya está en la receta','err');return;}
+    sf(p=>({...p,ing:[...p.ing,{...ni,key:uid()}]}));sni({id:'',qty:''});
+  };
+  const costo=f.ing.reduce((t,ri)=>{const i=ings.find(x=>x.id===ri.id);return i?t+(i.price/(i.qty||1))*(ri.qty||0):t;},0);
+  return(
+    <Modal title={rec.id?'Editar receta':'Nueva receta'} onClose={onClose} wide footer={<>
+      <DelInModal onDelete={onDelete}/>
+      <Btn v='s' onClick={onClose}>Cancelar</Btn>
+      <Btn onClick={()=>f.nombre.trim()&&onSave(f)} disabled={!f.nombre.trim()}>Guardar</Btn>
+    </>}>
+      <div className="mg2">
+        <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder="Ej: Pan de centeno"/>
+        <FI label="Categoría" value={f.cat||''} onChange={s('cat')} placeholder="Masa, Relleno..."/>
+      </div>
+      <div className="mg2">
+        <FI label="Rendimiento" type="number" inputMode="decimal" value={f.rend||''} onChange={s('rend')} placeholder="12"/>
+        <FS label="Unidad" value={f.rend_u||'pz'} onChange={s('rend_u')} opts={['pz','kg','lt','porción','tanda','barra','caja']}/>
+      </div>
+      <div className="msec">Ingredientes</div>
+      {f.ing.length>0&&<div style={{border:'1px solid #EEF0E6',borderRadius:11,overflow:'hidden',marginBottom:10}}>
+        {f.ing.map(ri=>{
+          const ing=ings.find(x=>x.id===ri.id);
+          const c=ing?(ing.price/(ing.qty||1))*(ri.qty||0):0;
+          return <div key={ri.key} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 13px',borderBottom:'1px solid #F2F3EA',fontSize:13.5}}>
+            <span style={{flex:1,fontWeight:500}}>{ing?.nombre||'—'}</span>
+            <span style={{color:'var(--olive)'}}>{ri.qty} {ing?.unit||''}</span>
+            <span style={{color:'var(--forest)',fontWeight:600,minWidth:64,textAlign:'right'}}>{fmt(c,sym)}</span>
+            <button onClick={()=>sf(p=>({...p,ing:p.ing.filter(x=>x.key!==ri.key)}))} style={{border:'none',background:'none',cursor:'pointer',color:'#C9C9C9',padding:4}}><Icon n='x' s={13}/></button>
+          </div>;
+        })}
+      </div>}
+      <div style={{display:'flex',gap:8,marginBottom:nig?8:14}}>
+        <select value={ni.id} onChange={e=>sni(p=>({...p,id:e.target.value}))} style={{flex:1,minWidth:0}}>
+          <option value="">Agregar ingrediente...</option>
+          {sorted.map(i=><option key={i.id} value={i.id}>{i.nombre} ({i.unit})</option>)}
+        </select>
+        <input type="number" inputMode="decimal" step=".001" placeholder="Cant." value={ni.qty} onChange={e=>sni(p=>({...p,qty:e.target.value}))} style={{width:84}}/>
+        <Btn onClick={add} disabled={!ni.id||!ni.qty}><Icon n='plus' s={15}/></Btn>
+        <Btn v='s' sm onClick={()=>setNig(nig?null:{nombre:'',qty:'',unit:'g',price:''})}>{nig?'Cancelar':'Nuevo'}</Btn>
+      </div>
+      {nig&&<div style={{marginBottom:14,background:'var(--cream)',borderRadius:11,padding:12,display:'flex',flexDirection:'column',gap:8,border:'1px solid #DEE5CE'}}>
+        <div style={{fontSize:11,fontWeight:700,color:'var(--olive)',textTransform:'uppercase',letterSpacing:'.05em'}}>Nuevo ingrediente</div>
+        <input placeholder="Nombre *" value={nig.nombre} onChange={e=>setNig(p=>({...p,nombre:e.target.value}))}/>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+          <input type="number" inputMode="decimal" placeholder="Empaque" value={nig.qty} onChange={e=>setNig(p=>({...p,qty:e.target.value}))}/>
+          <select value={nig.unit} onChange={e=>setNig(p=>({...p,unit:e.target.value}))}>
+            {['g','kg','ml','lt','pz','taza'].map(u=><option key={u} value={u}>{u}</option>)}
+          </select>
+          <input type="number" inputMode="decimal" placeholder="Precio" value={nig.price} onChange={e=>setNig(p=>({...p,price:e.target.value}))}/>
+        </div>
+        <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+          <Btn v='p' sm onClick={saveNewIng} disabled={!nig?.nombre?.trim()||!nig.qty}>Guardar ingrediente</Btn>
+        </div>
+      </div>}
+      {costo>0&&<div style={{background:'#F0F7E8',borderRadius:11,padding:'10px 14px',marginBottom:14,display:'flex',justifyContent:'space-between'}}>
+        <span style={{fontSize:13.5,fontWeight:600,color:'var(--forest)'}}>Costo total ingredientes</span>
+        <span style={{fontWeight:700,color:'var(--forest)'}}>{fmt(costo,sym)}</span>
+      </div>}
+      <FT label="Instrucciones" value={f.inst||''} onChange={s('inst')} placeholder="Pasos de preparación..."/>
+      <FT label="Notas" value={f.notes||''} onChange={s('notes')} placeholder="Trucos, variaciones..."/>
+    </Modal>
+  );
+}
+function BascModal({rec,ings,sym,onClose}){
+  const[modo,setModo]=useState('tandas');
+  const[cant,setCant]=useState(1);
+  const factor=modo==='tandas'?cant:cant/(rec.rend||1);
+  const items=(rec.ing||[]).map(ri=>{
+    const i=ings.find(x=>x.id===ri.id);
+    return{nombre:i?.nombre||'?',unit:i?.unit||'',q:ri.qty*factor,costo:i?(i.price/(i.qty||1))*ri.qty*factor:0};
+  });
+  const total=items.reduce((s,i)=>s+i.costo,0);
+  function print(){
+    printHTML('<div style="font-family:sans-serif;max-width:420px;margin:0 auto;padding:24px"><h2 style="color:#34522A">Báscula — '+esc(rec.nombre)+'</h2><p style="color:#818A6D">'+cant+' '+(modo==='tandas'?'tanda(s)':(rec.rend_u||'unidades'))+'</p><table style="width:100%;border-collapse:collapse;margin-top:12px"><tr style="border-bottom:2px solid #eee"><th style="text-align:left;padding:6px 0">Ingrediente</th><th style="text-align:right;padding:6px 0">Cantidad</th></tr>'+items.map(i=>'<tr style="border-bottom:1px solid #f5f5f5"><td style="padding:8px 0">'+esc(i.nombre)+'</td><td style="text-align:right;padding:8px 0"><strong>'+(i.q%1===0?i.q:i.q.toFixed(3))+' '+i.unit+'</strong></td></tr>').join('')+'</table><p style="margin-top:16px;font-weight:bold;color:#34522A">Costo estimado: '+fmt(total,sym)+'</p></div>');
+  }
+  return(
+    <Modal title={'Báscula — '+rec.nombre} onClose={onClose} footer={<>
+      <Btn v='s' onClick={print}><Icon n='print' s={14}/> Imprimir</Btn>
+      <Btn onClick={onClose}>Cerrar</Btn>
+    </>}>
+      <div className="seg" style={{display:'flex',marginBottom:14}}>
+        <button className={modo==='tandas'?'on':''} style={{flex:1}} onClick={()=>setModo('tandas')}>Por tandas</button>
+        <button className={modo==='unidades'?'on':''} style={{flex:1}} onClick={()=>setModo('unidades')}>Por {rec.rend_u||'unidades'}</button>
+      </div>
+      <FI label={'Cantidad de '+(modo==='tandas'?'tandas':(rec.rend_u||'unidades'))} type="number" inputMode="decimal" min=".5" step=".5" value={cant} onChange={e=>setCant(+e.target.value||1)}/>
+      <div style={{background:'#F0F7E8',borderRadius:13,overflow:'hidden',marginBottom:16}}>
+        {items.map((i,idx)=>(
+          <div key={idx} style={{display:'flex',justifyContent:'space-between',gap:10,padding:'9px 14px',borderBottom:'1px solid rgba(0,0,0,.05)',fontSize:13.5}}>
+            <span>{i.nombre}</span>
+            <span style={{fontFeatureSettings:'"tnum"',fontWeight:700,color:'var(--forest)'}}>{i.q%1===0?i.q:i.q.toFixed(3)} {i.unit}</span>
+          </div>
+        ))}
+        <div style={{padding:'10px 14px',display:'flex',justifyContent:'space-between',fontWeight:700,color:'var(--forest)'}}>
+          <span>Costo estimado</span><span>{fmt(total,sym)}</span>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+// ── PRODUCTOS Y PRECIOS ──────────────────────────────────────────────────
+function Calc({D,ops}){
+  const [q,setQ]=useState('');
+  const [modal,setModal]=useState(null);
+  const [del,setDel]=useState(null);
+  const {sym}=D.cfg;
+  const list=useMemo(()=>D.prod.filter(p=>p.nombre.toLowerCase().includes(q.toLowerCase())).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'')),[D.prod,q]);
+  const save=d=>{ops.ups('prod',{...d,recs:(d.recs||[]).map(({key,...r})=>r),packing:(d.packing||[]).map(({key,...x})=>x)},modal?.id);setModal(null);toast(modal?.id?'Producto actualizado':'Producto creado');};
+  return(
+    <div className="pp pv" style={{maxWidth:760,margin:'0 auto'}}>
+      <PH title="Productos y precios" sub={D.prod.length+' productos con costo calculado'} action={<Btn onClick={()=>setModal({})}><Icon n='plus' s={15}/> Nuevo producto</Btn>}/>
+      <SB val={q} set={setQ} ph="Buscar producto..."/>
+      {list.length===0?<Empty icon={<Icon n="calc" s={26} c="var(--forest)"/>} title="Sin productos" sub="Calculá el precio de venta de tus panes con costos reales." action={<Btn onClick={()=>setModal({})}>+ Crear producto</Btn>}/>:
+        <div className="card" style={{overflow:'hidden'}}>
+          {list.map(p=>{
+            const gan=(p.price||0)-(p.cost||0);
+            const pct=p.cost>0&&p.price>0?Math.round(gan/p.price*100):null;
+            const sinRec=!(p.recs&&p.recs.length>0);
+            return(
+              <div key={p.id} className="lrow" onClick={()=>setModal(p)}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:600,fontSize:14,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.nombre}</div>
+                  <div style={{fontSize:12,color:'var(--olive)',marginTop:2,display:'flex',gap:8,alignItems:'center'}}>
+                    {p.sku&&<span style={{fontFamily:'monospace'}}>{p.sku}</span>}
+                    <span>Costo {fmt(p.cost||0,sym)}</span>
+                    {sinRec&&<span style={{color:'#92400E'}}>⚠ Sin receta</span>}
+                  </div>
+                </div>
+                <div style={{textAlign:'right',flexShrink:0}}>
+                  <div style={{fontWeight:700,color:'var(--forest)',fontSize:14.5}}>{fmt(p.price||0,sym)}</div>
+                  {pct!=null&&<span className={'badge '+(pct>20?'bg':pct>0?'by':'brd')} style={{fontSize:10.5,marginTop:2}}>{pct}% margen</span>}
+                </div>
+                <Icon n='right' s={14} c='#C9D2BE'/>
+              </div>
+            );
+          })}
+        </div>
+      }
+      {modal!==null&&<ProdModal prod={modal} D={D} onSave={save} onClose={()=>setModal(null)}
+        onDelete={modal.id?()=>{setDel(modal);setModal(null);}:null}/>}
+      {del&&<CDel what={del.nombre} onOk={()=>{ops.del('prod',del.id);setDel(null);toast('Producto eliminado','err');}} onNo={()=>setDel(null)}/>}
+      <Fab onClick={()=>setModal({})} label="Nuevo producto"/>
+    </div>
+  );
+}
+function ProdModal({prod,D,onSave,onClose,onDelete}){
+  const {sym}=D.cfg;
+  const[f,sf]=useState({nombre:'',sku:'',recs:[],packing:[],extras:0,tiempo:0,waste:5,ut_type:'fixed',ut:0,ship:0,notes:'',...prod,recs:(prod.recs||[]).map(r=>({...r,key:r.key||uid()})),packing:(prod.packing||[]).map(p=>({...p,key:p.key||uid()}))});
+  const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
+  const n=k=>e=>sf(p=>({...p,[k]:parseFloat(e.target.value)||0}));
+  const[nr,snr]=useState({rid:'',t:1});
+  const[np,snp]=useState({pid:'',qty:1});
+  const addR=()=>{if(!nr.rid)return;sf(p=>({...p,recs:[...p.recs,{...nr,key:uid()}]}));snr({rid:'',t:1});};
+  const addP=()=>{if(!np.pid)return;sf(p=>({...p,packing:[...p.packing,{pid:np.pid,qty:+np.qty||1,key:uid()}]}));snp({pid:'',qty:1});};
+  const rcost=f.recs.reduce((t,rc)=>{const r=D.rec.find(x=>x.id===rc.rid);return r?t+recipeCost(r,D.ing)*(rc.t||1):t;},0);
+  const pcost=packCost(f.packing,D.pack);
+  const gi_prod=(cfgGastos(D.cfg)/(D.cfg.horas_mes||60))*((+f.tiempo||0)/60);
+  const base=rcost+pcost+(+f.extras||0)+gi_prod;
+  const withWaste=base*(1+(+f.waste||0)/100);
+  const utAmt=f.ut_type==='pct'?withWaste*(+f.ut/100):(+f.ut);
+  const final=withWaste+utAmt+(+f.ship);
+  const ganancia=final-withWaste;
+  const ingreso_hora=(+f.tiempo)>0?ganancia/((+f.tiempo)/60):null;
+  const MiniList=({rows})=>rows.length>0&&<div style={{border:'1px solid #EEF0E6',borderRadius:11,overflow:'hidden',marginBottom:10}}>{rows}</div>;
+  return(
+    <Modal title={prod.id?'Editar producto':'Nuevo producto'} onClose={onClose} wide footer={<>
+      <DelInModal onDelete={onDelete}/>
+      <Btn v='s' onClick={onClose}>Cancelar</Btn>
+      <Btn onClick={()=>f.nombre.trim()&&onSave({...f,cost:withWaste,price:final})} disabled={!f.nombre.trim()}>Guardar</Btn>
+    </>}>
+      <div className="mg2" style={{gridTemplateColumns:'2fr 1fr'}}>
+        <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder="Ej: Hogaza masa madre 700g"/>
+        <FI label="SKU" value={f.sku||''} onChange={s('sku')} placeholder="HMM-700"/>
+      </div>
+      <div className="msec">Recetas</div>
+      <MiniList rows={f.recs.map(rc=>{
+        const r=D.rec.find(x=>x.id===rc.rid);
+        const c=r?recipeCost(r,D.ing)*(rc.t||1):0;
+        return <div key={rc.key} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 13px',borderBottom:'1px solid #F2F3EA',fontSize:13.5}}>
+          <span style={{flex:1,fontWeight:500}}>{r?.nombre||'—'}</span>
+          <span style={{color:'var(--olive)'}}>{rc.t} tanda{rc.t>1?'s':''}</span>
+          <span style={{color:'var(--forest)',fontWeight:600,minWidth:64,textAlign:'right'}}>{fmt(c,sym)}</span>
+          <button onClick={()=>sf(p=>({...p,recs:p.recs.filter(x=>x.key!==rc.key)}))} style={{border:'none',background:'none',cursor:'pointer',color:'#C9C9C9',padding:4}}><Icon n='x' s={13}/></button>
+        </div>;
+      })}/>
+      <div style={{display:'flex',gap:8,marginBottom:16}}>
+        <select value={nr.rid} onChange={e=>snr(p=>({...p,rid:e.target.value}))} style={{flex:1,minWidth:0}}><option value="">Agregar receta...</option>{D.rec.map(r=><option key={r.id} value={r.id}>{r.nombre}</option>)}</select>
+        <input type="number" inputMode="decimal" min=".5" step=".5" placeholder="Tandas" value={nr.t} onChange={e=>snr(p=>({...p,t:+e.target.value||1}))} style={{width:84}}/>
+        <Btn onClick={addR} disabled={!nr.rid}><Icon n='plus' s={15}/></Btn>
+      </div>
+      <div className="msec">Empaque</div>
+      <MiniList rows={f.packing.map(pi=>{
+        const pk=D.pack.find(x=>x.id===pi.pid);
+        const c=pk?(pk.price/(pk.qty||1))*(pi.qty||0):0;
+        return <div key={pi.key} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 13px',borderBottom:'1px solid #F2F3EA',fontSize:13.5}}>
+          <span style={{flex:1,fontWeight:500}}>{pk?.nombre||'—'}</span>
+          <span style={{color:'var(--olive)'}}>×{pi.qty}</span>
+          <span style={{color:'var(--forest)',fontWeight:600,minWidth:64,textAlign:'right'}}>{fmt(c,sym)}</span>
+          <button onClick={()=>sf(p=>({...p,packing:p.packing.filter(x=>x.key!==pi.key)}))} style={{border:'none',background:'none',cursor:'pointer',color:'#C9C9C9',padding:4}}><Icon n='x' s={13}/></button>
+        </div>;
+      })}/>
+      <div style={{display:'flex',gap:8,marginBottom:8}}>
+        <select value={np.pid} onChange={e=>snp(p=>({...p,pid:e.target.value}))} style={{flex:1,minWidth:0}}><option value="">Agregar material...</option>{D.pack.map(pk=><option key={pk.id} value={pk.id}>{pk.nombre} — {fmt(pk.price/(pk.qty||1),sym)}/pz</option>)}</select>
+        <input type="number" inputMode="decimal" min=".5" step=".5" placeholder="Cant." value={np.qty} onChange={e=>snp(p=>({...p,qty:+e.target.value||1}))} style={{width:74}}/>
+        <Btn onClick={addP} disabled={!np.pid}><Icon n='plus' s={15}/></Btn>
+      </div>
+      {D.pack.length===0&&<p style={{fontSize:12,color:'var(--olive)',marginBottom:12}}>Agregá materiales en <strong>Ingredientes → Empaques</strong> para usarlos aquí.</p>}
+      <div className="msec">Costos adicionales</div>
+      <div className="mg3">
+        <FI label={'Otros extras ('+sym+')'} type="number" inputMode="decimal" value={f.extras||0} onChange={n('extras')}/>
+        <FI label="Tiempo activo (min)" type="number" inputMode="decimal" value={f.tiempo||0} onChange={n('tiempo')}/>
+        <FI label="Merma (%)" type="number" inputMode="decimal" step=".5" value={f.waste} onChange={n('waste')}/>
+      </div>
+      <div className="msec">Precio de venta</div>
+      <div className="mg3">
+        <F label="Tipo de precio">
+          <div className="seg" style={{display:'flex',width:'100%'}}>
+            <button className={f.ut_type==='fixed'?'on':''} style={{flex:1}} onClick={()=>sf(p=>({...p,ut_type:'fixed'}))}>Monto fijo</button>
+            <button className={f.ut_type==='pct'?'on':''} style={{flex:1}} onClick={()=>sf(p=>({...p,ut_type:'pct'}))}>% margen</button>
+          </div>
+        </F>
+        <FI label={f.ut_type==='pct'?'Margen (%)':'Ganancia ('+sym+')'} type="number" inputMode="decimal" value={f.ut} onChange={n('ut')}/>
+        <FI label="Envío / comisión" type="number" inputMode="decimal" value={f.ship} onChange={n('ship')}/>
+      </div>
+      <div className="msec" style={{marginTop:8}}>Resumen</div>
+      <div style={{background:'#F4F8F0',borderRadius:13,padding:'14px 16px',marginBottom:14,border:'1px solid rgba(52,82,42,.08)'}}>
+        <div style={{display:'flex',flexDirection:'column',gap:5,fontSize:13.5}}>
+          {[['Ingredientes',rcost],['Empaque',pcost],['Otros extras',+f.extras||0],['Gastos fijos dist.',gi_prod]].map(([l,v])=>v>0&&<div key={l} style={{display:'flex',justifyContent:'space-between',color:'var(--forest)'}}><span>{l}</span><span>{fmt(v,sym)}</span></div>)}
+          {(+f.waste||0)>0&&<div style={{display:'flex',justifyContent:'space-between',fontSize:12.5,color:'var(--olive)'}}><span>Merma ({f.waste}%)</span><span>+ {fmt(withWaste-base,sym)}</span></div>}
+          <div style={{display:'flex',justifyContent:'space-between',fontWeight:700,paddingTop:7,borderTop:'1.5px solid rgba(52,82,42,.22)',color:'var(--forest)',fontSize:14}}><span>Costo real</span><span>{fmt(withWaste,sym)}</span></div>
+        </div>
+        <div style={{marginTop:12,padding:'13px 15px',background:'var(--forest)',borderRadius:11,display:'flex',justifyContent:'space-between',alignItems:'center',gap:10}}>
+          <div>
+            <div style={{fontSize:10.5,fontWeight:700,textTransform:'uppercase',letterSpacing:'.07em',color:'rgba(218,227,142,.7)',marginBottom:3}}>Precio de venta</div>
+            <div style={{fontSize:11.5,color:'rgba(218,227,142,.6)'}}>Ganancia {fmt(ganancia,sym)}{ingreso_hora!=null?' · '+fmt(ingreso_hora,sym)+'/h':''}</div>
+          </div>
+          <div className="serif" style={{fontSize:28,color:'var(--pistachio)'}}>{fmt(final,sym)}</div>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ── CLIENTES ─────────────────────────────────────────────────────────────
+function Cli({D,ops}){
+  const [q,setQ]=useState('');
+  const [modal,setModal]=useState(null);
+  const [del,setDel]=useState(null);
+  const [sel,setSel]=useState(null);
+  const {sym}=D.cfg;
+  const list=useMemo(()=>D.cli.filter(c=>(c.nombre+' '+(c.tel||'')).toLowerCase().includes(q.toLowerCase())).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'')),[D.cli,q]);
+  const save=d=>{ops.ups('cli',d,modal?.id);setModal(null);toast(modal?.id?'Cliente actualizado':'Cliente agregado');};
+  if(sel){
+    const c=D.cli.find(x=>x.id===sel);
+    if(!c){setSel(null);return null;}
+    const peds=D.ped.filter(p=>p.cli_id===c.id).sort((a,b)=>(b.fecha_e||b.fecha||'').localeCompare(a.fecha_e||a.fecha||''));
+    const tot=peds.filter(p=>p.estado==='Entregado').reduce((s,p)=>s+(+p.total||0),0);
+    return(
+      <div className="pp pv" style={{maxWidth:760,margin:'0 auto'}}>
+        <button className="back-btn" onClick={()=>setSel(null)}><Icon n="left" s={15}/> Clientes</button>
+        <div className="card" style={{padding:22,marginBottom:20}}>
+          <div style={{display:'flex',gap:14,alignItems:'center',marginBottom:16}}>
+            <div className="av" style={{width:54,height:54,fontSize:19}}>{initials(c.nombre)}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <h1 style={{fontSize:24,color:'var(--forest)',lineHeight:1.1}}>{c.nombre}</h1>
+              {c.tel&&<p style={{fontSize:13,color:'var(--olive)',marginTop:3}}>{c.tel}</p>}
+            </div>
+            <Btn v='g' sm onClick={()=>setModal(c)}><Icon n='edit' s={16}/></Btn>
+          </div>
+          {(c.tel||c.email)&&<div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:14}}>
+            {c.tel&&<a className="btn btn-s btn-sm" href={waHref(c.tel,'Hola '+c.nombre.split(' ')[0]+'! Te saluda '+(D.cfg.nombre||'Sensa Panetteria')+' 🍞')} target="_blank" rel="noopener" style={{textDecoration:'none'}}><Icon n='wa' s={14}/> WhatsApp</a>}
+            {c.tel&&<a className="btn btn-s btn-sm" href={'tel:'+c.tel.replace(/[^\d+]/g,'')} style={{textDecoration:'none'}}><Icon n='phone' s={13}/> Llamar</a>}
+            {c.email&&<a className="btn btn-s btn-sm" href={'mailto:'+c.email} style={{textDecoration:'none'}}>✉ Email</a>}
+          </div>}
+          {c.notes&&<p style={{fontSize:13,color:'var(--olive)',fontStyle:'italic',marginBottom:14}}>{c.notes}</p>}
+          <div style={{display:'flex',gap:24,borderTop:'1px solid #F0F2EA',paddingTop:14}}>
+            <div><div className="serif" style={{fontSize:22,color:'var(--forest)'}}>{fmt(tot,sym)}</div><div style={{fontSize:10.5,textTransform:'uppercase',letterSpacing:'.05em',color:'var(--olive)',fontWeight:700}}>Total gastado</div></div>
+            <div><div className="serif" style={{fontSize:22,color:'var(--forest)'}}>{peds.length}</div><div style={{fontSize:10.5,textTransform:'uppercase',letterSpacing:'.05em',color:'var(--olive)',fontWeight:700}}>Pedidos</div></div>
+          </div>
+        </div>
+        <h2 style={{fontSize:18,fontStyle:'italic',color:'var(--forest)',marginBottom:12}}>Historial de pedidos</h2>
+        {peds.length===0?<p style={{color:'var(--olive)',fontSize:13.5}}>Sin pedidos aún.</p>:
+          <div className="card" style={{overflow:'hidden'}}>
+            {peds.map(p=>(
+              <div key={p.id} className="lrow" style={{cursor:'default'}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13.5,fontWeight:600}}>{fdateY(p.fecha_e||p.fecha)}</div>
+                  {p.desc&&<div style={{fontSize:12,color:'var(--olive)',marginTop:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.desc}</div>}
+                </div>
+                <span className={'badge '+(BADGE_E[p.estado]||'bc')}>{p.estado}</span>
+                <div style={{fontWeight:700,color:'var(--forest)',minWidth:70,textAlign:'right'}}>{fmt(p.total||0,sym)}</div>
+              </div>
+            ))}
+          </div>
+        }
+        {modal!==null&&<CliModal c={modal} onSave={save} onClose={()=>setModal(null)}
+          onDelete={modal.id?()=>{setDel(modal);setModal(null);}:null}/>}
+        {del&&<CDel what={del.nombre} onOk={()=>{ops.del('cli',del.id);setDel(null);setSel(null);toast('Cliente eliminado','err');}} onNo={()=>setDel(null)}/>}
+      </div>
+    );
+  }
+  return(
+    <div className="pp pv" style={{maxWidth:760,margin:'0 auto'}}>
+      <PH title="Clientes" sub={D.cli.length+' clientes'} action={<Btn onClick={()=>setModal({})}><Icon n='plus' s={15}/> Nuevo cliente</Btn>}/>
+      <SB val={q} set={setQ} ph="Buscar por nombre o teléfono..."/>
+      {list.length===0?<Empty icon={<Icon n="users" s={26} c="var(--forest)"/>} title="Sin clientes" sub="Agregá tus clientes para llevar su historial." action={<Btn onClick={()=>setModal({})}>+ Agregar</Btn>}/>:
+        <div className="card" style={{overflow:'hidden'}}>
+          {list.map(c=>{
+            const peds=D.ped.filter(p=>p.cli_id===c.id);
+            const tot=peds.filter(p=>p.estado==='Entregado').reduce((s,p)=>s+(+p.total||0),0);
+            return(
+              <div key={c.id} className="lrow" onClick={()=>setSel(c.id)}>
+                <div className="av">{initials(c.nombre)}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:600,fontSize:14,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.nombre}</div>
+                  <div style={{fontSize:12,color:'var(--olive)',marginTop:2}}>{c.tel||'Sin teléfono'} · {peds.length} pedido{peds.length!==1?'s':''}</div>
+                </div>
+                <div style={{fontWeight:700,color:'var(--forest)',fontSize:13.5,flexShrink:0}}>{fmt(tot,sym)}</div>
+                <Icon n='right' s={14} c='#C9D2BE'/>
+              </div>
+            );
+          })}
+        </div>
+      }
+      {modal!==null&&<CliModal c={modal} onSave={save} onClose={()=>setModal(null)}
+        onDelete={modal.id?()=>{setDel(modal);setModal(null);}:null}/>}
+      {del&&<CDel what={del.nombre} onOk={()=>{ops.del('cli',del.id);setDel(null);toast('Cliente eliminado','err');}} onNo={()=>setDel(null)}/>}
+      <Fab onClick={()=>setModal({})} label="Nuevo cliente"/>
+    </div>
+  );
+}
+function CliModal({c,onSave,onClose,onDelete}){
+  const[f,sf]=useState({nombre:'',tel:'',email:'',notes:'',...c});
+  const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
+  return(
+    <Modal title={c.id?'Editar cliente':'Nuevo cliente'} onClose={onClose} footer={<>
+      <DelInModal onDelete={onDelete}/>
+      <Btn v='s' onClick={onClose}>Cancelar</Btn>
+      <Btn onClick={()=>f.nombre.trim()&&onSave(f)} disabled={!f.nombre.trim()}>Guardar</Btn>
+    </>}>
+      <FI label="Nombre *" value={f.nombre} onChange={s('nombre')} placeholder="Nombre completo"/>
+      <FI label="Teléfono / WhatsApp" type="tel" value={f.tel||''} onChange={s('tel')} placeholder="+506 8888-8888"/>
+      <FI label="Email" type="email" value={f.email||''} onChange={s('email')} placeholder="correo@ejemplo.com"/>
+      <FT label="Notas" value={f.notes||''} onChange={s('notes')} placeholder="Preferencias, alergias..."/>
+    </Modal>
+  );
+}
+// ── PEDIDOS ──────────────────────────────────────────────────────────────
+function notaHTML(p,D){
+  const c=D.cli.find(x=>x.id===p.cli_id);
+  const sym=D.cfg.sym, saldo=(p.total||0)-(p.adelanto||0);
+  const itemsHtml=(p.items&&p.items.length>0)
+    ?'<table style="width:100%;border-collapse:collapse;margin:12px 0">'+p.items.map(it=>{const prod=D.prod.find(x=>x.id===it.pid);return'<tr style="border-bottom:1px solid #eee"><td style="padding:7px 0">'+esc(prod?.nombre||'?')+'</td><td style="text-align:center;color:#818A6D;padding:7px 8px">×'+it.qty+'</td><td style="text-align:right;padding:7px 0;font-weight:600;color:#34522A">'+fmt((+it.qty||1)*(+it.price||0),sym)+'</td></tr>';}).join('')+'</table>'
+    :'<div style="background:#F5F6EF;padding:12px;border-radius:8px;margin:16px 0">'+esc(p.desc||'Sin descripción')+'</div>';
+  return '<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px"><div style="text-align:center;border-bottom:2px solid #34522A;padding-bottom:20px;margin-bottom:20px"><div style="font-family:serif;font-size:34px;font-style:italic;color:#34522A">sensa</div><div style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#818A6D">Panetteria</div>'+(D.cfg.dir?'<div style="font-size:12px;color:#818A6D;margin-top:4px">'+esc(D.cfg.dir)+'</div>':'')+'</div><h2 style="color:#34522A;margin:0 0 16px">Nota de Venta #'+p.id.slice(-6).toUpperCase()+'</h2><p><strong>Cliente:</strong> '+esc(c?.nombre||'—')+'</p>'+(c?.tel?'<p><strong>Tel:</strong> '+esc(c.tel)+'</p>':'')+'<p><strong>Entrega:</strong> '+fdateY(p.fecha_e)+'</p>'+itemsHtml+(p.desc&&p.items&&p.items.length>0?'<p style="color:#818A6D;font-size:13px;margin:8px 0">'+esc(p.desc)+'</p>':'')+'<table style="width:100%;border-collapse:collapse;margin-top:8px"><tr style="border-top:2px solid #34522A;border-bottom:1px solid #eee"><td style="padding:10px 0;font-weight:bold">Total</td><td style="text-align:right;font-size:24px;font-weight:bold;color:#34522A;font-family:serif">'+fmt(p.total||0,sym)+'</td></tr>'+((p.adelanto||0)>0?'<tr style="border-bottom:1px solid #eee"><td style="padding:8px 0">Adelanto</td><td style="text-align:right;color:#2D6A4F">-'+fmt(p.adelanto,sym)+'</td></tr>':'')+(saldo>0.01?'<tr><td style="padding:8px 0;font-weight:bold">Saldo pendiente</td><td style="text-align:right;color:#BE123C;font-weight:bold">'+fmt(saldo,sym)+'</td></tr>':'<tr><td style="padding:8px 0;color:#2D6A4F" colspan="2">✓ Pagado completamente</td></tr>')+'</table>'+(p.notes?'<p style="color:#818A6D;font-size:13px;font-style:italic;margin-top:16px">'+esc(p.notes)+'</p>':'')+'<p style="text-align:center;color:#34522A;margin-top:32px;font-weight:700">¡Gracias por su preferencia!</p></div>';
+}
+function waPedido(p,D){
+  const c=D.cli.find(x=>x.id===p.cli_id);
+  if(!c?.tel)return null;
+  const sym=D.cfg.sym, saldo=(p.total||0)-(p.adelanto||0);
+  const items=(p.items||[]).map(it=>{const prod=D.prod.find(x=>x.id===it.pid);return '• '+it.qty+'× '+(prod?.nombre||'?');}).join('\n');
+  let txt='*'+(D.cfg.nombre||'Sensa Panetteria')+'* 🍞\n\nHola '+c.nombre.split(' ')[0]+'! Resumen de tu pedido:\n';
+  if(items)txt+='\n'+items+'\n';
+  if(p.desc)txt+='\n'+p.desc+'\n';
+  txt+='\n📅 Entrega: '+frel(p.fecha_e)+' ('+fdateY(p.fecha_e)+')';
+  txt+='\n💰 Total: '+fmt(p.total||0,sym);
+  if((p.adelanto||0)>0)txt+='\nAdelanto: '+fmt(p.adelanto,sym);
+  if(saldo>0.01)txt+='\nSaldo pendiente: '+fmt(saldo,sym);else txt+='\n✓ Pagado';
+  txt+='\n\n¡Gracias por tu preferencia!';
+  return waHref(c.tel,txt);
+}
+function PedCard({p,D,ops,onEdit}){
+  const {sym}=D.cfg;
+  const cl=D.cli.find(c=>c.id===p.cli_id);
+  const saldo=(p.total||0)-(p.adelanto||0);
+  const items=(p.items||[]).map(it=>{const prod=D.prod.find(x=>x.id===it.pid);return it.qty+'× '+(prod?.nombre||'?');}).join(' · ');
+  const wa=waPedido(p,D);
+  const esHoy=p.fecha_e===today();
+  const vencido=p.fecha_e&&p.fecha_e<today()&&!['Entregado','Cancelado'].includes(p.estado);
+  const IB=({icon,title,onClick,href})=>href
+    ?<a className="btn btn-g btn-sm" href={href} target="_blank" rel="noopener" title={title} style={{textDecoration:'none'}}><Icon n={icon} s={16}/></a>
+    :<button className="btn btn-g btn-sm" title={title} onClick={onClick}><Icon n={icon} s={16}/></button>;
+  return(
+    <div className="card" style={{padding:'16px 16px 10px',borderLeft:esHoy?'3.5px solid var(--forest)':vencido?'3.5px solid var(--red)':undefined}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8,marginBottom:8}}>
+        <div style={{minWidth:0,cursor:'pointer',flex:1}} onClick={onEdit}>
+          <div style={{fontWeight:700,fontSize:15,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cl?.nombre||'Sin cliente'}</div>
+          <div style={{fontSize:12.5,color:esHoy?'var(--forest)':vencido?'var(--red)':'var(--olive)',fontWeight:esHoy||vencido?700:500,marginTop:2,display:'flex',alignItems:'center',gap:5}}>
+            <Icon n='calendar' s={12}/>{frel(p.fecha_e)}{p.fecha_e&&' · '+fdate(p.fecha_e)}
+          </div>
+        </div>
+        <select value={p.estado} onChange={e=>ops.ups('ped',{...p,estado:e.target.value},p.id)} onClick={e=>e.stopPropagation()}
+          className={'badge '+(BADGE_E[p.estado]||'bc')} style={{border:'none',cursor:'pointer',outline:'none',width:'auto',padding:'3px 22px 3px 10px',fontSize:11.5,fontWeight:600,backgroundPosition:'right 7px center',backgroundSize:10,flexShrink:0}}>
+          {ESTADOS.map(e=><option key={e} value={e}>{e}</option>)}
+        </select>
+      </div>
+      <div onClick={onEdit} style={{cursor:'pointer'}}>
+        {items&&<div style={{fontSize:13,lineHeight:1.5,marginBottom:4}}>{items}</div>}
+        {p.desc&&<div style={{fontSize:12.5,color:'var(--olive)',marginBottom:4,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{p.desc}</div>}
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,borderTop:'1px solid #F2F3EA',marginTop:6}}>
+          <span style={{fontWeight:700,color:'var(--forest)',fontSize:15}}>{fmt(p.total||0,sym)}</span>
+          {saldo>0.01
+            ?<span style={{fontSize:12.5,fontWeight:700,color:'var(--red)'}}>Saldo {fmt(saldo,sym)}</span>
+            :<span style={{fontSize:12,fontWeight:600,color:'#2D6A4F'}}>✓ Pagado</span>}
+        </div>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:2,marginTop:4}}>
+        {wa&&<IB icon='wa' title='Enviar por WhatsApp' href={wa}/>}
+        <IB icon='print' title='Imprimir nota' onClick={()=>printHTML(notaHTML(p,D))}/>
+        <IB icon='copy' title='Duplicar pedido' onClick={()=>{
+          const{id,...rest}=p;
+          ops.ups('ped',{...rest,id:uid(),fecha:today(),fecha_e:'',estado:'Cotización',adelanto:0,items:(p.items||[]).map(i=>({...i,key:uid()}))});
+          toast('Pedido duplicado — definí la fecha de entrega');
+        }}/>
+        <IB icon='edit' title='Editar' onClick={onEdit}/>
+        {saldo>0.01&&<button className="btn btn-s btn-sm" style={{marginLeft:'auto'}} onClick={()=>{ops.ups('ped',{...p,adelanto:+p.total||0},p.id);toast('Marcado como pagado');}}>Cobrar ✓</button>}
+      </div>
+    </div>
+  );
+}
+function Ped({D,ops}){
+  const [q,setQ]=useState('');
+  const [est,setEst]=useState('Activos');
+  const [modal,setModal]=useState(null);
+  const [del,setDel]=useState(null);
+  const list=useMemo(()=>{
+    let r=D.ped;
+    if(est==='Activos')r=r.filter(p=>!['Entregado','Cancelado'].includes(p.estado));
+    else if(est!=='Todos')r=r.filter(p=>p.estado===est);
+    if(q){const ql=q.toLowerCase();r=r.filter(p=>{const c=D.cli.find(x=>x.id===p.cli_id);return(c?.nombre||'').toLowerCase().includes(ql)||(p.desc||'').toLowerCase().includes(ql);});}
+    return[...r].sort((a,b)=>(a.fecha_e||'9999').localeCompare(b.fecha_e||'9999'));
+  },[D.ped,est,q,D.cli]);
+  const save=d=>{ops.ups('ped',{...d,total:+d.total||0,adelanto:+d.adelanto||0,items:(d.items||[]).map(({key,...i})=>({...i,qty:+i.qty||1,price:+i.price||0}))},modal?.id);setModal(null);toast(modal?.id?'Pedido actualizado':'Pedido creado');};
+  return(
+    <div className="pp pv" style={{maxWidth:1100,margin:'0 auto'}}>
+      <PH title="Pedidos" sub={D.ped.length+' totales'} action={<Btn onClick={()=>setModal({})}><Icon n='plus' s={15}/> Nuevo pedido</Btn>}/>
+      <div className="chips">
+        {['Activos','Todos',...ESTADOS].map(e=><button key={e} className={'chip'+(est===e?' on':'')} onClick={()=>setEst(e)}>{e}</button>)}
+      </div>
+      <SB val={q} set={setQ} ph="Buscar por cliente o descripción..."/>
+      {list.length===0?<Empty icon={<Icon n="package" s={26} c="var(--forest)"/>} title="Sin pedidos" sub={est==='Activos'?'No hay pedidos activos. Cambiá el filtro o registrá uno nuevo.':'Registrá tus pedidos para controlar entregas y cobros.'} action={<Btn onClick={()=>setModal({})}>+ Registrar</Btn>}/>:
+        <div className="ped-grid">
+          {list.map(p=><PedCard key={p.id} p={p} D={D} ops={ops} onEdit={()=>setModal(p)}/>)}
+        </div>
+      }
+      {modal!==null&&<PedModal ped={modal} D={D} ops={ops} onSave={save} onClose={()=>setModal(null)}
+        onDelete={modal.id?()=>{setDel(modal);setModal(null);}:null}/>}
+      {del&&<CDel what={'pedido de '+(D.cli.find(c=>c.id===del.cli_id)?.nombre||'cliente')} onOk={()=>{ops.del('ped',del.id);setDel(null);toast('Pedido eliminado','err');}} onNo={()=>setDel(null)}/>}
+      <Fab onClick={()=>setModal({})} label="Nuevo pedido"/>
+    </div>
+  );
+}
+function PedModal({ped,D,ops,onSave,onClose,onDelete}){
+  const {sym}=D.cfg;
+  const[f,sf]=useState({cli_id:'',fecha:today(),fecha_e:'',desc:'',notes:'',total:'',adelanto:'',estado:'Cotización',items:[],...ped,items:(ped.items||[]).map(i=>({...i,key:i.key||uid()}))});
+  const s=k=>e=>sf(p=>({...p,[k]:e.target.value}));
+  const saldo=(+f.total||0)-(+f.adelanto||0);
+  const[nc,setNc]=useState(null);
+  const saveNewCli=()=>{
+    if(!nc?.nombre?.trim())return;
+    const nid=uid();
+    ops.ups('cli',{id:nid,nombre:nc.nombre.trim(),tel:nc.tel||'',email:'',notes:''});
+    sf(p=>({...p,cli_id:nid}));setNc(null);toast('Cliente creado');
+  };
+  function recalc(items){const tot=Math.round(items.reduce((t,i)=>t+(+i.qty||1)*(+i.price||0),0));sf(p=>({...p,items,total:tot}));}
+  function addItem(pid){const prod=D.prod.find(p=>p.id===pid);if(!prod)return;recalc([...f.items,{pid,qty:1,price:prod.price,key:uid()}]);}
+  const itemsTotal=f.items.reduce((t,i)=>t+(+i.qty||1)*(+i.price||0),0);
+  return(
+    <Modal title={ped.id?'Editar pedido':'Nuevo pedido'} onClose={onClose} wide footer={<>
+      <DelInModal onDelete={onDelete}/>
+      <Btn v='s' onClick={onClose}>Cancelar</Btn>
+      <Btn onClick={()=>f.cli_id&&onSave(f)} disabled={!f.cli_id}>Guardar</Btn>
+    </>}>
+      <div className="mg2">
+        <F label="Cliente *">
+          <div style={{display:'flex',gap:6}}>
+            <select style={{flex:1,minWidth:0}} value={f.cli_id} onChange={s('cli_id')}><option value="">Seleccionar...</option>{[...D.cli].sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'')).map(c=><option key={c.id} value={c.id}>{c.nombre}</option>)}</select>
+            <Btn v='s' sm onClick={()=>setNc(nc?null:{nombre:'',tel:''})} title="Nuevo cliente">{nc?<Icon n='x' s={13}/>:<Icon n='plus' s={13}/>}</Btn>
+          </div>
+          {nc&&<div style={{marginTop:8,background:'var(--cream)',borderRadius:11,padding:12,display:'flex',flexDirection:'column',gap:8,border:'1px solid #DEE5CE'}}>
+            <input placeholder="Nombre *" value={nc.nombre} onChange={e=>setNc(p=>({...p,nombre:e.target.value}))}/>
+            <input placeholder="Teléfono / WhatsApp" type="tel" value={nc.tel} onChange={e=>setNc(p=>({...p,tel:e.target.value}))}/>
+            <div style={{display:'flex',justifyContent:'flex-end'}}>
+              <Btn v='p' sm onClick={saveNewCli} disabled={!nc?.nombre?.trim()}>Guardar cliente</Btn>
+            </div>
+          </div>}
+        </F>
+        <FS label="Estado" value={f.estado} onChange={s('estado')} opts={ESTADOS}/>
+      </div>
+      <div className="mg2">
+        <FI label="Fecha de pedido" type="date" value={f.fecha} onChange={s('fecha')}/>
+        <FI label="Fecha de entrega *" type="date" value={f.fecha_e||''} onChange={s('fecha_e')}/>
+      </div>
+      {!f.fecha_e&&<div style={{background:'#FEF9C3',border:'1px solid #FDE68A',borderRadius:10,padding:'8px 13px',fontSize:12.5,color:'#92400E',marginBottom:12,display:'flex',alignItems:'center',gap:8}}><Icon n='alert' s={14} c='#92400E'/>Sin fecha de entrega — no aparecerá en el calendario</div>}
+      <div className="msec">Productos del pedido</div>
+      {f.items.length>0&&<div style={{border:'1px solid #EEF0E6',borderRadius:11,overflow:'hidden',marginBottom:10}}>
+        {f.items.map(it=>{
+          const prod=D.prod.find(x=>x.id===it.pid);
+          return <div key={it.key} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderBottom:'1px solid #F2F3EA',fontSize:13.5}}>
+            <span style={{flex:1,minWidth:0,fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{prod?.nombre||'—'}</span>
+            <input type="number" inputMode="numeric" min="1" step="1" value={it.qty} onChange={e=>recalc(f.items.map(i=>i.key===it.key?{...i,qty:+e.target.value||1}:i))} style={{width:56,padding:'5px 7px',fontSize:13,textAlign:'center',borderRadius:8}}/>
+            <span style={{color:'var(--forest)',fontWeight:700,minWidth:72,textAlign:'right',fontFeatureSettings:'"tnum"'}}>{fmt((+it.qty||1)*(+it.price||0),sym)}</span>
+            <button onClick={()=>recalc(f.items.filter(i=>i.key!==it.key))} style={{border:'none',background:'none',cursor:'pointer',color:'#C9C9C9',padding:4}}><Icon n='x' s={13}/></button>
+          </div>;
+        })}
+        <div style={{padding:'9px 13px',display:'flex',justifyContent:'space-between',fontWeight:700,color:'var(--forest)',fontSize:13.5,background:'#F9FBF4'}}>
+          <span>Total productos</span><span>{fmt(itemsTotal,sym)}</span>
+        </div>
+      </div>}
+      <div style={{marginBottom:14}}>
+        <select value="" onChange={e=>{if(e.target.value)addItem(e.target.value);}}>
+          <option value="">+ Agregar producto...</option>
+          {[...D.prod].sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'')).map(p=><option key={p.id} value={p.id}>{p.nombre}{p.sku?' · '+p.sku:''} — {fmt(p.price||0,sym)}</option>)}
+        </select>
+      </div>
+      <FT label="Descripción" value={f.desc||''} onChange={s('desc')} placeholder="Detalles adicionales del pedido…"/>
+      <div className="msec">Cobro</div>
+      <div className="mg3">
+        <FI label={'Total ('+sym+')'} type="number" inputMode="numeric" step="50" value={f.total||''} onChange={s('total')}/>
+        <FI label={'Adelanto ('+sym+')'} type="number" inputMode="numeric" step="50" value={f.adelanto||''} onChange={s('adelanto')}/>
+        <F label="Saldo"><div style={{padding:'10px 13px',borderRadius:10,fontWeight:700,fontSize:15,background:saldo>0.01?'#FFF1F2':'#F0FDF4',color:saldo>0.01?'var(--red)':'#2D6A4F',border:'1.5px solid '+(saldo>0.01?'#FECDD3':'#BBF7D0')}}>{saldo>0.01?fmt(saldo,sym):'✓ Pagado'}</div></F>
+      </div>
+      <FT label="Notas internas" value={f.notes||''} onChange={s('notes')} placeholder="Instrucciones de producción, observaciones…"/>
+    </Modal>
+  );
+}
+
+// ── CALENDARIO ───────────────────────────────────────────────────────────
+function CalDayModal({day,peds,D,onClose}){
+  const {sym}=D.cfg;
+  const cl=id=>D.cli.find(c=>c.id===id);
+  const totalDia=peds.reduce((s,p)=>s+(+p.total||0),0);
+  const hornear=prodAgg(peds,D.prod);
+  return(
+    <Modal title={'Entregas — '+fdateY(day)} onClose={onClose}>
+      {hornear.length>0&&<div style={{marginBottom:14}}>
+        <div className="msec" style={{marginTop:0}}>Producción del día</div>
+        <div style={{display:'flex',gap:7,flexWrap:'wrap'}}>
+          {hornear.map(x=><span key={x.nombre} className="badge bg" style={{fontSize:12.5,padding:'5px 13px'}}>{x.q}× {x.nombre}</span>)}
+        </div>
+      </div>}
+      {peds.map(p=>(
+        <div key={p.id} style={{border:'1px solid #EEF0E6',borderRadius:12,padding:14,marginBottom:10}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5,gap:8}}>
+            <span style={{fontWeight:600}}>{cl(p.cli_id)?.nombre||'Sin cliente'}</span>
+            <span className={'badge '+(BADGE_E[p.estado]||'bc')}>{p.estado}</span>
+          </div>
+          {p.desc&&<p style={{fontSize:13,color:'var(--olive)',marginBottom:6}}>{p.desc}</p>}
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:13}}>
+            <span style={{color:'var(--olive)'}}>Total <strong style={{color:'var(--forest)'}}>{fmt(p.total||0,sym)}</strong></span>
+            {(p.total||0)-(p.adelanto||0)>0.01&&<span style={{color:'var(--red)',fontWeight:700}}>Saldo {fmt((p.total||0)-(p.adelanto||0),sym)}</span>}
+          </div>
+        </div>
+      ))}
+      <div style={{display:'flex',justifyContent:'space-between',padding:'10px 4px 0',fontWeight:700,color:'var(--forest)'}}>
+        <span>Total del día</span><span>{fmt(totalDia,sym)}</span>
+      </div>
+    </Modal>
+  );
+}
+function Cal({D}){
+  const [m,setM]=useState(()=>{const d=new Date();return{y:d.getFullYear(),mo:d.getMonth()};});
+  const [day,setDay]=useState(null);
+  const first=new Date(m.y,m.mo,1),off=(first.getDay()+6)%7,last=new Date(m.y,m.mo+1,0).getDate();
+  const dias=[];
+  for(let i=0;i<off;i++)dias.push({d:iso(new Date(m.y,m.mo,-off+i+1)),curr:false});
+  for(let i=1;i<=last;i++)dias.push({d:iso(new Date(m.y,m.mo,i)),curr:true});
+  const gd=date=>D.ped.filter(p=>p.fecha_e===date&&p.estado!=='Cancelado');
+  const cl=id=>D.cli.find(c=>c.id===id);
+  const hoy=today();
+  const nav=v=>{const nd=new Date(m.y,m.mo+v);setM({y:nd.getFullYear(),mo:nd.getMonth()});};
+  const totalMes=D.ped.filter(p=>p.fecha_e&&p.fecha_e.startsWith(m.y+'-'+String(m.mo+1).padStart(2,'0'))&&p.estado!=='Cancelado').reduce((s,p)=>s+(+p.total||0),0);
+  return(
+    <div className="pp pv" style={{maxWidth:920,margin:'0 auto'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8,gap:8,flexWrap:'wrap'}}>
+        <h1 style={{fontSize:30,fontStyle:'italic',color:'var(--forest)'}}>Calendario</h1>
+        <div style={{display:'flex',alignItems:'center',gap:6}}>
+          <Btn v='s' sm onClick={()=>nav(-1)}>‹</Btn>
+          <span style={{fontWeight:600,color:'var(--forest)',minWidth:130,textAlign:'center',fontSize:14}}>{MESES[m.mo]} {m.y}</span>
+          <Btn v='s' sm onClick={()=>nav(1)}>›</Btn>
+          {(m.y!==new Date().getFullYear()||m.mo!==new Date().getMonth())&&<Btn v='s' sm onClick={()=>{const d=new Date();setM({y:d.getFullYear(),mo:d.getMonth()});}}>Hoy</Btn>}
+        </div>
+      </div>
+      {totalMes>0&&<p style={{fontSize:13,color:'var(--olive)',marginBottom:16}}>Entregas del mes: <strong style={{color:'var(--forest)'}}>{fmt(totalMes,D.cfg.sym)}</strong></p>}
+      <div className="card" style={{overflow:'hidden',marginTop:totalMes>0?0:14}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',background:'var(--forest)'}}>
+          {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d=><div key={d} style={{textAlign:'center',padding:'10px 0',fontSize:11,fontWeight:700,color:'var(--pistachio)',letterSpacing:'.05em'}}>{d}</div>)}
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:1,background:'#E8EDE0'}}>
+          {dias.map(({d,curr})=>{
+            const peds=gd(d),isT=d===hoy;
+            return(
+              <div key={d} onClick={()=>peds.length&&setDay(d)} className="cal-cell" style={{background:peds.length?'#FDFEF8':'white',padding:'6px 6px',minHeight:74,opacity:curr?1:.35,cursor:peds.length?'pointer':'default'}}>
+                <div style={{fontSize:12.5,fontWeight:600,width:23,height:23,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',background:isT?'var(--forest)':'transparent',color:isT?'white':'#555',marginBottom:3}}>{new Date(d+'T12:00').getDate()}</div>
+                {peds.slice(0,2).map(p=><div key={p.id} style={{fontSize:10.5,background:'var(--pistachio)',color:'var(--forest)',borderRadius:5,padding:'2px 5px',marginBottom:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontWeight:700,lineHeight:1.3}}>{cl(p.cli_id)?.nombre?.split(' ')[0]||'?'}</div>)}
+                {peds.length>2&&<div style={{fontSize:10,color:'var(--olive)',fontWeight:600}}>+{peds.length-2} más</div>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {day&&<CalDayModal day={day} peds={gd(day)} D={D} onClose={()=>setDay(null)}/>}
+    </div>
+  );
+}
+// ── REPORTES ─────────────────────────────────────────────────────────────
+function addDays(s,n){const d=new Date(s+'T12:00');d.setDate(d.getDate()+n);return iso(d);}
+function Rep({D}){
+  const {sym}=D.cfg;
+  const [desde,setDesde]=useState(()=>today().slice(0,8)+'01');
+  const [hasta,setHasta]=useState(today);
+  const [preset,setPreset]=useState('mes');
+  const PRESETS=[
+    {id:'mes',l:'Este mes',f:()=>[today().slice(0,8)+'01',today()]},
+    {id:'pasado',l:'Mes pasado',f:()=>{const d=new Date();const y=d.getMonth()===0?d.getFullYear()-1:d.getFullYear();const mo=d.getMonth()===0?11:d.getMonth()-1;return[iso(new Date(y,mo,1)),iso(new Date(y,mo+1,0))];}},
+    {id:'7d',l:'Últimos 7 días',f:()=>[addDays(today(),-6),today()]},
+    {id:'30d',l:'Últimos 30 días',f:()=>[addDays(today(),-29),today()]},
+  ];
+  const apply=p=>{const[a,b]=p.f();setDesde(a);setHasta(b);setPreset(p.id);};
+  const inRange=(p,a,b)=>{const f=p.fecha_e||p.fecha||'';return p.estado==='Entregado'&&f>=a&&f<=b;};
+  const peds=useMemo(()=>D.ped.filter(p=>inRange(p,desde,hasta)),[D.ped,desde,hasta]);
+  const total=peds.reduce((s,p)=>s+(+p.total||0),0);
+  // Período anterior de igual duración
+  const len=Math.round((new Date(hasta)-new Date(desde))/86400000)+1;
+  const prevH=addDays(desde,-1),prevD=addDays(prevH,-(len-1));
+  const prevTotal=useMemo(()=>D.ped.filter(p=>inRange(p,prevD,prevH)).reduce((s,p)=>s+(+p.total||0),0),[D.ped,prevD,prevH]);
+  const delta=prevTotal>0?Math.round((total-prevTotal)/prevTotal*100):null;
+  const ticket=peds.length?total/peds.length:0;
+  const nclients=new Set(peds.map(p=>p.cli_id)).size;
+  const byDay=useMemo(()=>{const m={};peds.forEach(p=>{const k=p.fecha_e||p.fecha||'';m[k]=(m[k]||0)+(+p.total||0);});return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0]));},[peds]);
+  const topCli=useMemo(()=>{const m={};peds.forEach(p=>{if(!m[p.cli_id])m[p.cli_id]={n:0,t:0};m[p.cli_id].n++;m[p.cli_id].t+=(+p.total||0);});return Object.entries(m).map(([id,v])=>({c:D.cli.find(x=>x.id===id),...v})).filter(x=>x.c).sort((a,b)=>b.t-a.t).slice(0,5);},[peds,D.cli]);
+  const topProd=useMemo(()=>{const m={};peds.forEach(p=>{(p.items||[]).forEach(it=>{if(!m[it.pid])m[it.pid]={qty:0,rev:0};m[it.pid].qty+=(+it.qty||1);m[it.pid].rev+=(+it.qty||1)*(+it.price||0);});});return Object.entries(m).map(([pid,v])=>({p:D.prod.find(x=>x.id===pid),...v})).filter(x=>x.p).sort((a,b)=>b.rev-a.rev).slice(0,6);},[peds,D.prod]);
+  const mx=Math.max(...byDay.map(v=>v[1]),1);
+  return(
+    <div className="pp pv" style={{maxWidth:920,margin:'0 auto'}}>
+      <PH title="Reportes" sub="Ventas de pedidos entregados"/>
+      <div className="chips">
+        {PRESETS.map(p=><button key={p.id} className={'chip'+(preset===p.id?' on':'')} onClick={()=>apply(p)}>{p.l}</button>)}
+      </div>
+      <div className="card" style={{padding:14,marginBottom:20,display:'flex',gap:12,flexWrap:'wrap'}}>
+        <div style={{flex:1,minWidth:130}}><label>Desde</label><input type="date" value={desde} onChange={e=>{setDesde(e.target.value);setPreset('');}}/></div>
+        <div style={{flex:1,minWidth:130}}><label>Hasta</label><input type="date" value={hasta} onChange={e=>{setHasta(e.target.value);setPreset('');}}/></div>
+      </div>
+      <div className="g4" style={{marginBottom:22}}>
+        {[
+          {l:'Ventas totales',v:fmt(total,sym),i:'chart',bg:'#EEF5E6',c:'var(--forest)',extra:delta!=null&&<span className={'badge '+(delta>=0?'bg':'brd')} style={{fontSize:10.5,marginTop:4}}>{delta>=0?'▲':'▼'} {Math.abs(delta)}% vs anterior</span>},
+          {l:'Pedidos entregados',v:peds.length,i:'package',bg:'#EEF4FF',c:'#1E3A5F'},
+          {l:'Ticket promedio',v:fmt(ticket,sym),i:'calc',bg:'#FDF0F3',c:'#9D174D'},
+          {l:'Clientes atendidos',v:nclients,i:'users',bg:'#F5F3FF',c:'#4C1D95'},
+        ].map(s=>(
+          <div key={s.l} className="card" style={{padding:'15px 16px',background:s.bg,border:'none'}}>
+            <div style={{width:31,height:31,borderRadius:9,background:'rgba(255,255,255,.65)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:10}}>
+              <Icon n={s.i} s={16} c={s.c}/>
+            </div>
+            <div className="serif" style={{fontSize:'clamp(17px,4.8vw,21px)',color:s.c,lineHeight:1.1,overflowWrap:'anywhere'}}>{s.v}</div>
+            <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:s.c,opacity:.55,marginTop:4}}>{s.l}</div>
+            {s.extra}
+          </div>
+        ))}
+      </div>
+      {byDay.length>0&&<div className="card" style={{padding:20,marginBottom:18}}>
+        <h2 style={{fontSize:17,fontStyle:'italic',color:'var(--forest)',marginBottom:16}}>Ventas diarias</h2>
+        <div style={{display:'flex',alignItems:'flex-end',gap:6,overflowX:'auto',paddingBottom:26,height:142,paddingTop:4}}>
+          {byDay.map(([f,v])=>(
+            <div key={f} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,flexShrink:0,minWidth:42}}>
+              <div style={{fontSize:9.5,fontWeight:700,color:'var(--forest)',whiteSpace:'nowrap'}}>{sym==='₡'?Math.round(v/1000)+'K':'$'+Math.round(v)}</div>
+              <div title={f+': '+fmt(v,sym)} style={{width:26,height:Math.max((v/mx)*80,4),borderRadius:'5px 5px 0 0',background:'linear-gradient(180deg,var(--forest),#46683A)',opacity:.7+.3*(v/mx)}}/>
+              <div style={{fontSize:9,color:'var(--olive)',whiteSpace:'nowrap'}}>{f.slice(8)}/{f.slice(5,7)}</div>
+            </div>
+          ))}
+        </div>
+      </div>}
+      <div className="g2" style={{gap:16,alignItems:'start'}}>
+        {topProd.length>0&&<div className="card" style={{padding:20}}>
+          <h2 style={{fontSize:17,fontStyle:'italic',color:'var(--forest)',marginBottom:12}}>Productos más vendidos</h2>
+          {topProd.map(({p,qty,rev})=>{
+            const pct=total>0?Math.round(rev/total*100):0;
+            return <div key={p.id} style={{padding:'8px 0',borderBottom:'1px solid #F2F3EA'}}>
+              <div style={{display:'flex',justifyContent:'space-between',gap:8,marginBottom:5}}>
+                <span style={{fontWeight:600,fontSize:13.5}}>{p.nombre}</span>
+                <span style={{fontWeight:700,color:'var(--forest)',fontSize:13.5,flexShrink:0}}>{fmt(rev,sym)}</span>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <div style={{flex:1,height:5,borderRadius:3,background:'#EEF0E6',overflow:'hidden'}}>
+                  <div style={{height:'100%',borderRadius:3,background:'var(--forest)',width:pct+'%',opacity:.7}}/>
+                </div>
+                <span style={{fontSize:11.5,color:'var(--olive)',fontWeight:600,flexShrink:0}}>{qty} uds</span>
+              </div>
+            </div>;
+          })}
+        </div>}
+        {topCli.length>0&&<div className="card" style={{padding:20}}>
+          <h2 style={{fontSize:17,fontStyle:'italic',color:'var(--forest)',marginBottom:12}}>Top clientes</h2>
+          {topCli.map(({c,n,t})=>(
+            <div key={c.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:'1px solid #F2F3EA'}}>
+              <div className="av" style={{width:34,height:34,fontSize:12.5}}>{initials(c.nombre)}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontWeight:600,fontSize:13.5,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.nombre}</div>
+                <div style={{fontSize:11.5,color:'var(--olive)'}}>{n} pedido{n>1?'s':''}</div>
+              </div>
+              <div style={{fontWeight:700,color:'var(--forest)',fontSize:13.5}}>{fmt(t,sym)}</div>
+            </div>
+          ))}
+        </div>}
+      </div>
+      {peds.length===0&&<Empty icon={<Icon n="chart" s={26} c="var(--forest)"/>} title="Sin datos en este período" sub="Ajustá el rango o marcá pedidos como 'Entregado'."/>}
+    </div>
+  );
+}
+
+// ── CONFIGURACIÓN ────────────────────────────────────────────────────────
+function Cfg({D,ops,synced}){
+  const [f,sf]=useState({...D.cfg});
+  const [costos,setCostos]=useState(()=>(D.cfg.costos&&D.cfg.costos.length>0)?D.cfg.costos.map(c=>({...c,key:c.key||uid()})):[]);
+  const [showSetup,setShowSetup]=useState(false);
+  const [confirm,setConfirm]=useState(null);
+  const gastosTotal=costos.reduce((s,c)=>s+(+c.monto||0),0);
+  function save(){ops.saveCfg({...f,costos:costos.map(({key,...c})=>c),gastos_fijos:gastosTotal});toast('Configuración guardada');}
+  function exportD(){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}));
+    a.download='sensa-backup-'+today()+'.json';a.click();
+  }
+  function importD(e){
+    const file=e.target.files[0];if(!file)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        const d=JSON.parse(ev.target.result);
+        if(!d||typeof d!=='object')throw new Error();
+        setConfirm({title:'Importar datos',body:'Esto agrega/reemplaza los registros del backup sobre los actuales. ¿Continuás?',okLabel:'Importar',danger:true,onOk:()=>{
+          ['ing','rec','prod','cli','ped','pack'].forEach(k=>{
+            if(Array.isArray(d[k]))d[k].forEach(item=>{if(item?.id)ops.ups(k,item,item.id);});
+          });
+          if(d.cfg)ops.saveCfg({...DEF.cfg,...d.cfg});
+          toast('Datos importados correctamente');setConfirm(null);
+        }});
+      }catch{toast('Archivo inválido — usá un backup de Sensa','err');}
+    };
+    r.readAsText(file);e.target.value='';
+  }
+  function discFB(){setConfirm({title:'Desconectar Firebase',body:'Los datos dejarán de sincronizarse. Podés reconectar cuando quieras.',okLabel:'Desconectar',danger:true,onOk:()=>{localStorage.removeItem(LSF);window.location.reload();}});}
+  if(showSetup)return <Setup onDone={()=>window.location.reload()} onSkip={()=>setShowSetup(false)}/>;
+  const Sec=({title,sub,children})=><div className="card" style={{padding:22,marginBottom:14}}>
+    <h2 style={{fontSize:18,fontStyle:'italic',color:'var(--forest)',marginBottom:sub?5:14}}>{title}</h2>
+    {sub&&<p style={{fontSize:13,color:'var(--olive)',marginBottom:14}}>{sub}</p>}
+    {children}
+  </div>;
+  return(<>
+    <div className="pp pv" style={{maxWidth:620,margin:'0 auto'}}>
+      <PH title="Configuración"/>
+      <Sec title="Datos del negocio">
+        <FI label="Nombre del negocio" value={f.nombre||''} onChange={e=>sf(p=>({...p,nombre:e.target.value}))}/>
+        <FI label="Dirección" value={f.dir||''} onChange={e=>sf(p=>({...p,dir:e.target.value}))} placeholder="San José, Costa Rica"/>
+        <FI label="Teléfono / WhatsApp" type="tel" value={f.tel||''} onChange={e=>sf(p=>({...p,tel:e.target.value}))} placeholder="+506 8888-8888"/>
+        <F label="Moneda">
+          <select value={f.moneda||'CRC'} onChange={e=>{const mo=MONEDAS.find(x=>x.value===e.target.value);sf(p=>({...p,moneda:mo.value,sym:mo.sym}));}}>
+            {MONEDAS.map(m=><option key={m.value} value={m.value}>{m.label}</option>)}
+          </select>
+        </F>
+        <Btn onClick={save}>Guardar cambios</Btn>
+      </Sec>
+      <Sec title="Costos operativos" sub="Gastos fijos mensuales que se distribuyen por producto según el tiempo de trabajo activo.">
+        <FI label="Horas de producción al mes" type="number" inputMode="numeric" value={f.horas_mes||60} onChange={e=>sf(p=>({...p,horas_mes:parseFloat(e.target.value)||60}))}/>
+        <div style={{marginBottom:14}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+            <span style={{fontSize:13,fontWeight:600,color:'var(--olive)'}}>Gastos fijos mensuales</span>
+            <Btn v='s' sm onClick={()=>setCostos(p=>[...p,{nombre:'',monto:0,key:uid()}])}>+ Agregar</Btn>
+          </div>
+          {costos.length===0&&<p style={{fontSize:13,color:'var(--olive)',fontStyle:'italic',textAlign:'center',padding:'10px 0'}}>Sin gastos registrados</p>}
+          {costos.map(c=>(
+            <div key={c.key} style={{display:'flex',gap:8,alignItems:'center',marginBottom:8}}>
+              <input style={{flex:2,minWidth:0}} placeholder="Descripción (Luz, Agua…)" value={c.nombre} onChange={e=>setCostos(p=>p.map(x=>x.key===c.key?{...x,nombre:e.target.value}:x))}/>
+              <input style={{flex:1,minWidth:0}} type="number" inputMode="numeric" placeholder="₡/mes" value={c.monto||''} onChange={e=>setCostos(p=>p.map(x=>x.key===c.key?{...x,monto:parseFloat(e.target.value)||0}:x))}/>
+              <button onClick={()=>setCostos(p=>p.filter(x=>x.key!==c.key))} style={{background:'none',border:'none',cursor:'pointer',color:'var(--rose)',padding:4}}><Icon n='x' s={15}/></button>
+            </div>
+          ))}
+          {costos.length>0&&<div style={{borderTop:'1px solid #EEF0E6',paddingTop:10,display:'flex',justifyContent:'space-between'}}>
+            <span style={{fontSize:13,fontWeight:600,color:'var(--forest)'}}>Total mensual</span>
+            <span style={{fontWeight:700,color:'var(--forest)'}}>₡{gastosTotal.toLocaleString('es-CR')}</span>
+          </div>}
+          {gastosTotal>0&&(f.horas_mes||0)>0&&<p style={{fontSize:12,color:'var(--olive)',marginTop:8}}>≈ ₡{Math.round(gastosTotal/(f.horas_mes||60)).toLocaleString('es-CR')} por hora de producción</p>}
+        </div>
+        <Btn onClick={save}>Guardar cambios</Btn>
+      </Sec>
+      <Sec title="Sincronización en la nube" sub="Accedé desde cualquier dispositivo en tiempo real.">
+        {synced?(
+          <div>
+            <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',borderRadius:11,background:'#F0F7E8',marginBottom:12}}>
+              <div style={{width:8,height:8,borderRadius:'50%',background:'#2D6A4F'}}/>
+              <span style={{fontSize:13.5,fontWeight:600,color:'var(--forest)'}}>Firebase activo — sincronización en tiempo real</span>
+            </div>
+            <Btn v='d' onClick={discFB}>Desconectar Firebase</Btn>
+          </div>
+        ):(
+          <div>
+            <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',borderRadius:11,background:'var(--cream)',marginBottom:12}}>
+              <div style={{width:8,height:8,borderRadius:'50%',background:'#ccc'}}/>
+              <span style={{fontSize:13.5,color:'var(--olive)'}}>Solo este dispositivo</span>
+            </div>
+            <Btn onClick={()=>setShowSetup(true)}><Icon n='cloud' s={14}/> Activar sincronización gratuita</Btn>
+          </div>
+        )}
+      </Sec>
+      <Sec title="Respaldo de datos" sub="Exportá o importá todos tus datos en un archivo JSON.">
+        <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
+          <Btn v='s' onClick={exportD}>Exportar datos</Btn>
+          <label className="btn btn-s" style={{cursor:'pointer'}}>
+            Importar datos<input type="file" accept=".json" onChange={importD} style={{display:'none'}}/>
+          </label>
+        </div>
+      </Sec>
+      <p style={{textAlign:'center',fontSize:11.5,color:'var(--olive)',opacity:.6,marginTop:8}}>Sensa Panetteria · App de gestión v2</p>
+    </div>
+    {confirm&&<CConfirm {...confirm} onNo={()=>setConfirm(null)}/>}
+  </>);
+}
+
+// ── FIREBASE RULES BANNER ────────────────────────────────────────────────
+function FbRulesBanner({daysLeft,onDismiss}){
+  const expired=daysLeft<=0;
+  const c=expired?'var(--red)':'#92400E';
+  return(
+    <div style={{background:expired?'#FFF1F2':'#FEF9C3',border:'1px solid '+(expired?'#FECDD3':'#FDE68A'),borderRadius:12,padding:'10px 14px',marginBottom:14,display:'flex',alignItems:'flex-start',gap:10}}>
+      <Icon n='alert' s={16} c={c} style={{marginTop:1}}/>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontWeight:700,fontSize:13,color:c,marginBottom:2}}>{expired?'Reglas de Firebase vencidas':'Reglas de Firebase por vencer'}</div>
+        <div style={{fontSize:12,color:c,opacity:.85,lineHeight:1.4}}>
+          {expired?'Las reglas de Firestore vencieron. La sincronización puede fallar.':'Vencen en '+daysLeft+' día'+(daysLeft!==1?'s':'')+'. Actualizalas en Firebase Console.'}
+        </div>
+        <div style={{display:'flex',gap:8,marginTop:8,flexWrap:'wrap'}}>
+          <a href="https://console.firebase.google.com/project/sensa-panetteria/firestore/rules" target="_blank" rel="noopener" style={{fontSize:12,fontWeight:700,color:'#fff',background:c,padding:'5px 12px',borderRadius:8,textDecoration:'none'}}>Ir a Firebase Console</a>
+          {!expired&&<button onClick={onDismiss} style={{fontSize:12,color:c,background:'none',border:'1px solid currentColor',borderRadius:8,padding:'5px 12px',cursor:'pointer',fontWeight:600}}>Recordar mañana</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── NAVEGACIÓN ───────────────────────────────────────────────────────────
+const BNAV=[
+  {id:'home',label:'Inicio',icon:'home'},
+  {id:'ped',label:'Pedidos',icon:'package'},
+  {id:'cal',label:'Calendario',icon:'calendar'},
+  {id:'rec',label:'Recetas',icon:'book'},
+];
+function BottomNav({page,go,onMore}){
+  const main=BNAV.map(n=>n.id);
+  return(
+    <div className="bottom-nav">
+      {BNAV.map(n=>(
+        <button key={n.id} className={'bnav-item'+(page===n.id?' active':'')} onClick={()=>go(n.id)}>
+          <span className="bnav-dot"/>
+          <span className="bnav-icon"><Icon n={n.icon} s={22}/></span>
+          <span className="bnav-label">{n.label}</span>
+        </button>
+      ))}
+      <button className={'bnav-item'+(!main.includes(page)?' active':'')} onClick={onMore}>
+        <span className="bnav-dot"/>
+        <span className="bnav-icon"><Icon n='menu' s={22}/></span>
+        <span className="bnav-label">Más</span>
+      </button>
+    </div>
+  );
+}
+function Sidebar({page,go,synced,onClose}){
+  return(
+    <div className="sidebar">
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:26,paddingLeft:4}}>
+        <div>
+          <div className="sidebar-logo">sensa</div>
+          <div className="sidebar-sub">Panetteria</div>
+        </div>
+        {onClose&&<button onClick={onClose} style={{background:'rgba(255,255,255,.1)',border:'none',cursor:'pointer',color:'rgba(245,246,239,.7)',padding:7,borderRadius:8,lineHeight:1}}><Icon n='x' s={13}/></button>}
+      </div>
+      <nav style={{flex:1,overflowY:'auto'}}>
+        {NAV.map(n=><div key={n.id} className={'nav-item '+(page===n.id?'active':'')} onClick={()=>{go(n.id);onClose&&onClose();}}>
+          <span style={{width:20,display:'flex',justifyContent:'center'}}><Icon n={n.icon} s={16}/></span>
+          <span>{n.label}</span>
+        </div>)}
+      </nav>
+      <div style={{paddingTop:14,marginTop:8,borderTop:'1px solid rgba(255,255,255,.08)',display:'flex',alignItems:'center',gap:8}}>
+        <div style={{width:8,height:8,borderRadius:'50%',background:synced?'var(--pistachio)':'rgba(255,255,255,.2)',boxShadow:synced?'0 0 6px rgba(218,227,142,.5)':'none'}}/>
+        <span style={{fontSize:11.5,color:synced?'rgba(218,227,142,.6)':'rgba(245,246,239,.3)'}}>{synced?'Sincronizado':'Solo local'}</span>
+      </div>
+    </div>
+  );
+}
+
+// ── APP ──────────────────────────────────────────────────────────────────
+function App(){
+  const [data,setData]=useState(loadLS);
+  const [page,setPage]=useState('home');
+  const [mob,setMob]=useState(false);
+  const [synced,setSynced]=useState(false);
+  const [fbDaysLeft,setFbDaysLeft]=useState(null);
+  const unsubs=useRef({});
+  const scrollRef=useRef(null);
+  useEffect(()=>{document.body.style.overflow=mob?'hidden':'';return()=>{document.body.style.overflow='';};},[mob]);
+  useEffect(()=>{if(scrollRef.current)scrollRef.current.scrollTop=0;},[page]);
+
+  useEffect(()=>{
+    const FB_CONFIG={
+      config:{
+        apiKey:"AIzaSyAmWMtzUVGMdN9MQQSx8Xq7ymhvx1LZAkU",
+        authDomain:"sensa-panetteria.firebaseapp.com",
+        projectId:"sensa-panetteria",
+        storageBucket:"sensa-panetteria.firebasestorage.app",
+        messagingSenderId:"260604622284",
+        appId:"1:260604622284:web:d5e307653c314b71ef5969"
+      },
+      workspaceId:"sensa"
+    };
+    const saved=loadFB()||FB_CONFIG;
+    localStorage.setItem(LSF,JSON.stringify(saved));
+    const ok=initFB(saved.config,saved.workspaceId);
+    if(ok){
+      setSynced(true);
+      let fbDate=localStorage.getItem(LSF_DATE);
+      if(!fbDate){fbDate=today();localStorage.setItem(LSF_DATE,fbDate);}
+      const left=30-Math.floor((new Date()-new Date(fbDate))/86400000);
+      if(left<=7){
+        const dismissed=localStorage.getItem('sensa_fb_dismiss');
+        if(dismissed!==today()||left<=0)setFbDaysLeft(left);
+      }
+      subscribeAll();
+    }
+    return()=>{Object.values(unsubs.current).forEach(u=>u&&u());};
+  },[]);
+
+  useEffect(()=>{saveLS(data);},[data]);
+
+  function onFbDenied(){setFbDaysLeft(0);setSynced(false);}
+  function subscribeAll(){
+    ['ing','rec','prod','cli','ped','pack'].forEach(c=>{
+      if(unsubs.current[c])unsubs.current[c]();
+      unsubs.current[c]=col(c).onSnapshot(
+        snap=>{const items=snap.docs.map(d=>({id:d.id,...d.data()}));setData(p=>({...p,[c]:items}));},
+        err=>{if(err.code==='permission-denied')onFbDenied();}
+      );
+    });
+    unsubs.current['cfg']=col('config').doc('main').onSnapshot(
+      doc=>{if(doc.exists())setData(p=>({...p,cfg:{...p.cfg,...doc.data()}}));},
+      err=>{if(err.code==='permission-denied')onFbDenied();}
+    );
+  }
+
+  const ops=useMemo(()=>({
+    ups(coll,item,existId){
+      const final=existId?{...item,id:existId}:{...item,id:item.id||uid()};
+      setData(p=>{const list=p[coll]||[];const ex=list.find(x=>x.id===final.id);return{...p,[coll]:ex?list.map(x=>x.id===final.id?final:x):[...list,final]};});
+      if(synced){fbUpsert(coll,final).catch(e=>{if(e.code==='permission-denied')onFbDenied();else toast('Error al guardar en la nube','err');});}
+    },
+    del(coll,id){
+      setData(p=>({...p,[coll]:(p[coll]||[]).filter(x=>x.id!==id)}));
+      if(synced){fbDel(coll,id).catch(e=>{if(e.code==='permission-denied')onFbDenied();else toast('Error al eliminar en la nube','err');});}
+    },
+    saveCfg(cfg){
+      setData(p=>({...p,cfg}));
+      if(synced){fbCfg(cfg).catch(e=>{if(e.code==='permission-denied')onFbDenied();else toast('Error al guardar config','err');});}
+    },
+  }),[synced]);
+
+  const props={D:data,ops,go:setPage};
+  const views={home:<Home {...props}/>,ing:<Ing {...props}/>,rec:<Rec {...props}/>,calc:<Calc {...props}/>,cli:<Cli {...props}/>,ped:<Ped {...props}/>,cal:<Cal {...props}/>,rep:<Rep {...props}/>,cfg:<Cfg {...props} synced={synced}/>};
+
+  return(
+    <div className="app-shell">
+      <div className="sb-desktop">
+        <Sidebar page={page} go={setPage} synced={synced}/>
+      </div>
+      {mob&&<div style={{position:'fixed',inset:0,zIndex:50,display:'flex'}}>
+        <div onClick={()=>setMob(false)} style={{position:'absolute',inset:0,background:'rgba(0,0,0,.5)',backdropFilter:'blur(3px)',animation:'fade .2s ease'}}/>
+        <div style={{position:'relative',zIndex:10}}>
+          <Sidebar page={page} go={setPage} synced={synced} onClose={()=>setMob(false)}/>
+        </div>
+      </div>}
+      <div style={{flex:1,display:'flex',flexDirection:'column',minHeight:0,minWidth:0}}>
+        <div className="mob-bar">
+          <button className="ham-btn" onClick={()=>setMob(true)} aria-label="Abrir menú">
+            <span/><span/><span/>
+          </button>
+          <div style={{flex:1,display:'flex',alignItems:'baseline',gap:8,minWidth:0}}>
+            <span style={{fontFamily:'Instrument Serif,serif',fontStyle:'italic',fontSize:20,color:'var(--pistachio)',lineHeight:1}}>sensa</span>
+            <span style={{fontWeight:600,fontSize:13.5,color:'rgba(245,246,239,.75)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{NAV.find(n=>n.id===page)?.label||'Inicio'}</span>
+          </div>
+          <div style={{width:7,height:7,borderRadius:'50%',background:synced?'var(--pistachio)':'rgba(255,255,255,.2)',boxShadow:synced?'0 0 5px rgba(218,227,142,.5)':'none',flexShrink:0}}/>
+        </div>
+        <div ref={scrollRef} style={{flex:1,overflowY:'auto',overflowX:'hidden',background:'var(--cream)',WebkitOverflowScrolling:'touch'}}>
+          <div style={{paddingBottom:'calc(76px + env(safe-area-inset-bottom,0px))'}}>
+            {fbDaysLeft!==null&&<div style={{padding:'12px 16px 0'}}>
+              <FbRulesBanner daysLeft={fbDaysLeft} onDismiss={()=>{localStorage.setItem('sensa_fb_dismiss',today());setFbDaysLeft(null);}}/>
+            </div>}
+            {views[page]||views.home}
+          </div>
+        </div>
+      </div>
+      <BottomNav page={page} go={setPage} onMore={()=>setMob(true)}/>
+      <Toaster/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <ErrorBoundary><App/></ErrorBoundary>
+);
+</script>
+</body>
+</html>
