@@ -210,8 +210,7 @@ const {
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────
 const LSK = 'sensa_v3',
-  LSF = 'sensa_fb',
-  LSF_DATE = 'sensa_fb_date';
+  LSF = 'sensa_fb';
 const MONEDAS = [{
   value: 'CRC',
   label: 'Colones (₡)',
@@ -276,6 +275,7 @@ const DEF = {
   ped: [],
   pack: [],
   inbox: [],
+  estado: null,
   cfg: {
     nombre: 'Sensa Panetteria',
     moneda: 'CRC',
@@ -395,6 +395,23 @@ function prodAgg(peds, prods) {
 function printHTML(html) {
   document.getElementById('pa').innerHTML = html;
   window.print();
+}
+// Próximo lunes 12:00 m.d. hora Costa Rica (UTC-6, sin horario de verano), en epoch ms.
+function nextCierre() {
+  const cr = new Date(Date.now() - 6 * 3600000);
+  const add = (1 - cr.getUTCDay() + 7) % 7;
+  cr.setUTCDate(cr.getUTCDate() + add);
+  cr.setUTCHours(12, 0, 0, 0);
+  let t = cr.getTime() + 6 * 3600000;
+  if (t <= Date.now()) t += 7 * 86400000;
+  return t;
+}
+function fCierre(t) {
+  return new Date(t).toLocaleDateString('es-CR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short'
+  }) + ', 12 m.d.';
 }
 
 // ── ICONS ────────────────────────────────────────────────────────────────
@@ -1273,7 +1290,66 @@ function Home({
     weekday: 'long',
     day: 'numeric',
     month: 'long'
-  }))), /*#__PURE__*/React.createElement("div", {
+  }))), (() => {
+    const ab = !!(D.estado && D.estado.abierto_hasta && D.estado.abierto_hasta > Date.now());
+    return /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        padding: '14px 18px',
+        marginBottom: 18,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        flexWrap: 'wrap',
+        borderLeft: ab ? '3.5px solid #2D6A4F' : '3.5px solid var(--rose)'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 10,
+        height: 10,
+        borderRadius: '50%',
+        flexShrink: 0,
+        background: ab ? '#2D6A4F' : 'var(--rose)',
+        boxShadow: ab ? '0 0 6px rgba(45,106,79,.5)' : 'none'
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 170
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        fontSize: 14,
+        color: 'var(--forest)'
+      }
+    }, "Pedidos web: ", ab ? 'abiertos' : 'cerrados'), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: 'var(--olive)',
+        marginTop: 2
+      }
+    }, ab ? 'Se cierran solos el ' + fCierre(D.estado.abierto_hasta) : 'El sitio no acepta pedidos ahora.')), /*#__PURE__*/React.createElement(Btn, {
+      sm: true,
+      v: ab ? 'd' : 'p',
+      onClick: () => {
+        if (ab) {
+          ops.saveEstado({
+            abierto_hasta: 0,
+            actualizado: Date.now()
+          });
+          toast('Pedidos web cerrados', 'err');
+        } else {
+          const t = nextCierre();
+          ops.saveEstado({
+            abierto_hasta: t,
+            actualizado: Date.now()
+          });
+          toast('Pedidos abiertos hasta el ' + fCierre(t));
+        }
+      }
+    }, ab ? 'Cerrar pedidos' : 'Abrir pedidos'));
+  })(), /*#__PURE__*/React.createElement("div", {
     className: "g4",
     style: {
       marginBottom: 18
@@ -5075,85 +5151,6 @@ function Cfg({
   }));
 }
 
-// ── FIREBASE RULES BANNER ────────────────────────────────────────────────
-function FbRulesBanner({
-  daysLeft,
-  onDismiss
-}) {
-  const expired = daysLeft <= 0;
-  const c = expired ? 'var(--red)' : '#92400E';
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: expired ? '#FFF1F2' : '#FEF9C3',
-      border: '1px solid ' + (expired ? '#FECDD3' : '#FDE68A'),
-      borderRadius: 12,
-      padding: '10px 14px',
-      marginBottom: 14,
-      display: 'flex',
-      alignItems: 'flex-start',
-      gap: 10
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    n: "alert",
-    s: 16,
-    c: c,
-    style: {
-      marginTop: 1
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 13,
-      color: c,
-      marginBottom: 2
-    }
-  }, expired ? 'Reglas de Firebase vencidas' : 'Reglas de Firebase por vencer'), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: c,
-      opacity: .85,
-      lineHeight: 1.4
-    }
-  }, expired ? 'Las reglas de Firestore vencieron. La sincronización puede fallar.' : 'Vencen en ' + daysLeft + ' día' + (daysLeft !== 1 ? 's' : '') + '. Actualizalas en Firebase Console.'), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 8,
-      marginTop: 8,
-      flexWrap: 'wrap'
-    }
-  }, /*#__PURE__*/React.createElement("a", {
-    href: "https://console.firebase.google.com/project/sensa-panetteria/firestore/rules",
-    target: "_blank",
-    rel: "noopener",
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: '#fff',
-      background: c,
-      padding: '5px 12px',
-      borderRadius: 8,
-      textDecoration: 'none'
-    }
-  }, "Ir a Firebase Console"), !expired && /*#__PURE__*/React.createElement("button", {
-    onClick: onDismiss,
-    style: {
-      fontSize: 12,
-      color: c,
-      background: 'none',
-      border: '1px solid currentColor',
-      borderRadius: 8,
-      padding: '5px 12px',
-      cursor: 'pointer',
-      fontWeight: 600
-    }
-  }, "Recordar mañana"))));
-}
-
 // ── NAVEGACIÓN ───────────────────────────────────────────────────────────
 const BNAV = [{
   id: 'home',
@@ -5374,6 +5371,9 @@ function Login() {
     disabled: busy
   }, busy ? 'Entrando...' : 'Entrar'))), document.body);
 }
+function inboxCalc(o) {
+  return Math.round((o.items || []).reduce((s, i) => s + (+i.qty || 0) * (+i.precio || 0), 0));
+}
 function InboxBanner({
   items,
   onAccept,
@@ -5393,46 +5393,57 @@ function InboxBanner({
       marginBottom: 8,
       fontSize: 14
     }
-  }, items.length, " pedido", items.length > 1 ? 's' : '', " nuevo", items.length > 1 ? 's' : '', " del link"), items.map(o => /*#__PURE__*/React.createElement("div", {
-    key: o.id,
-    style: {
-      background: '#fff',
-      borderRadius: 12,
-      padding: '10px 12px',
-      marginBottom: 8
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 600,
-      fontSize: 14,
-      color: 'var(--forest)'
-    }
-  }, o.nombre || 'Cliente web', o.zona ? ' · ' + o.zona : ''), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: 'var(--olive)',
-      margin: '2px 0'
-    }
-  }, (o.items || []).map(i => i.qty + 'x ' + i.nombre).join(', ')), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      fontWeight: 600,
-      color: 'var(--forest)'
-    }
-  }, "Total: ₡", Math.round(+o.total || 0).toLocaleString('es-CR'), o.tel ? ' · ' + o.tel : ''), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 8,
-      marginTop: 8
-    }
-  }, /*#__PURE__*/React.createElement(Btn, {
-    sm: true,
-    onClick: () => onAccept(o)
-  }, "Aceptar"), /*#__PURE__*/React.createElement(Btn, {
-    v: "s",
-    sm: true,
-    onClick: () => onDiscard(o)
-  }, "Descartar")))));
+  }, items.length, " pedido", items.length > 1 ? 's' : '', " nuevo", items.length > 1 ? 's' : '', " del link"), items.map(o => {
+    const calc = inboxCalc(o);
+    const raro = Math.abs(calc - Math.round(+o.total || 0)) > 1;
+    return /*#__PURE__*/React.createElement("div", {
+      key: o.id,
+      style: {
+        background: '#fff',
+        borderRadius: 12,
+        padding: '10px 12px',
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: 600,
+        fontSize: 14,
+        color: 'var(--forest)'
+      }
+    }, o.nombre || 'Cliente web', o.zona ? ' · ' + o.zona : ''), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: 'var(--olive)',
+        margin: '2px 0'
+      }
+    }, (o.items || []).map(i => i.qty + 'x ' + i.nombre).join(', ')), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        fontWeight: 600,
+        color: 'var(--forest)'
+      }
+    }, "Total: ₡", Math.round(+o.total || 0).toLocaleString('es-CR'), o.tel ? ' · ' + o.tel : ''), raro && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: 'var(--red)',
+        marginTop: 3
+      }
+    }, "⚠ El total no cuadra con los productos (suma ₡", calc.toLocaleString('es-CR'), ") — revisalo antes de aceptar"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 8,
+        marginTop: 8
+      }
+    }, /*#__PURE__*/React.createElement(Btn, {
+      sm: true,
+      onClick: () => onAccept(o)
+    }, "Aceptar"), /*#__PURE__*/React.createElement(Btn, {
+      v: "s",
+      sm: true,
+      onClick: () => onDiscard(o)
+    }, "Descartar")));
+  }));
 }
 function App() {
   const [data, setData] = useState(loadLS);
@@ -5440,7 +5451,6 @@ function App() {
   const [page, setPage] = useState('home');
   const [mob, setMob] = useState(false);
   const [synced, setSynced] = useState(false);
-  const [fbDaysLeft, setFbDaysLeft] = useState(null);
   const unsubs = useRef({});
   const scrollRef = useRef(null);
   useEffect(() => {
@@ -5469,16 +5479,6 @@ function App() {
     const ok = initFB(saved.config, saved.workspaceId);
     if (ok) {
       setSynced(true);
-      let fbDate = localStorage.getItem(LSF_DATE);
-      if (!fbDate) {
-        fbDate = today();
-        localStorage.setItem(LSF_DATE, fbDate);
-      }
-      const left = 30 - Math.floor((new Date() - new Date(fbDate)) / 86400000);
-      if (left <= 7) {
-        const dismissed = localStorage.getItem('sensa_fb_dismiss');
-        if (dismissed !== today() || left <= 0) setFbDaysLeft(left);
-      }
       firebase.auth().onAuthStateChanged(u => setUser(u || null));
     }
     return () => {
@@ -5498,8 +5498,8 @@ function App() {
     saveLS(data);
   }, [data]);
   function onFbDenied() {
-    setFbDaysLeft(0);
     setSynced(false);
+    toast('Sin permiso en la nube — cerrá sesión y volvé a entrar', 'err');
   }
   function subscribeAll() {
     ['ing', 'rec', 'prod', 'cli', 'ped', 'pack'].forEach(c => {
@@ -5537,7 +5537,18 @@ function App() {
         ...p,
         inbox: items
       }));
-    }, err => {});
+    }, err => {
+      console.error('[Sensa inbox]', err);
+      if (err.code === 'permission-denied') toast('No se puede leer el buzón web — revisá las reglas', 'err');
+    });
+    unsubs.current['estado'] = col('public').doc('estado').onSnapshot(doc => {
+      setData(p => ({
+        ...p,
+        estado: doc.data() || null
+      }));
+    }, err => {
+      console.error('[Sensa estado]', err);
+    });
   }
   const ops = useMemo(() => ({
     ups(coll, item, existId) {
@@ -5583,6 +5594,17 @@ function App() {
           if (e.code === 'permission-denied') onFbDenied();else toast('Error al guardar config', 'err');
         });
       }
+    },
+    saveEstado(v) {
+      setData(p => ({
+        ...p,
+        estado: v
+      }));
+      if (synced) {
+        col('public').doc('estado').set(v).catch(e => {
+          if (e.code === 'permission-denied') onFbDenied();else toast('Error al guardar el estado de pedidos', 'err');
+        });
+      } else toast('Sin conexión a la nube — el sitio no va a ver este cambio', 'err');
     }
   }), [synced]);
   function acceptInbox(o) {
@@ -5602,6 +5624,10 @@ function App() {
       });
     }
     const desc = (o.items || []).map(i => i.qty + 'x ' + i.nombre).join(', ');
+    // Total verificado: se recalcula desde los items; el enviado por el cliente no se confía a ciegas.
+    const calc = inboxCalc(o);
+    const raro = Math.abs(calc - Math.round(+o.total || 0)) > 1;
+    const total = calc > 0 ? calc : +o.total || 0;
     ops.ups('ped', {
       id: uid(),
       cli_id: cid,
@@ -5609,15 +5635,15 @@ function App() {
       fecha_e: '',
       desc,
       items: [],
-      total: +o.total || 0,
+      total,
       adelanto: 0,
       estado: 'Confirmado',
-      notes: 'Pedido web · ' + (o.zona || '') + (o.dia ? ' · entrega ' + o.dia : '') + (o.notes ? ' · ' + o.notes : '')
+      notes: 'Pedido web · ' + (o.zona || '') + (o.dia ? ' · entrega ' + o.dia : '') + (o.notes ? ' · ' + o.notes : '') + (raro ? ' · ⚠ el total enviado (₡' + Math.round(+o.total || 0).toLocaleString('es-CR') + ') no cuadraba; se usó la suma de items' : '')
     });
     fbDelInbox(o.id).catch(() => {});
     const wa = t.length >= 8 ? '506' + t.slice(-8) : t;
     if (wa) {
-      const cmsg = '¡Hola ' + (o.nombre || '') + '! Confirmamos tu pedido de Sensa Panetteria:\n\n' + desc + '\nTotal: ₡' + Math.round(+o.total || 0).toLocaleString('es-CR') + '\nEntrega: ' + (o.dia || '') + (o.zona ? ' en ' + o.zona : '') + '\n\n¡Gracias por tu pedido!';
+      const cmsg = '¡Hola ' + (o.nombre || '') + '! Confirmamos tu pedido de Sensa Panetteria:\n\n' + desc + '\nTotal: ₡' + Math.round(total).toLocaleString('es-CR') + '\nEntrega: ' + (o.dia || '') + (o.zona ? ' en ' + o.zona : '') + '\n\n¡Gracias por tu pedido!';
       window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(cmsg), '_blank');
     }
     toast('Pedido aceptado · confirmá por WhatsApp');
@@ -5643,7 +5669,11 @@ function App() {
       ...props,
       synced: synced,
       user: user,
-      onLogout: () => firebase.auth().signOut()
+      onLogout: () => {
+        localStorage.removeItem(LSK);
+        setData(DEF);
+        firebase.auth().signOut();
+      }
     })
   };
   if (user === undefined) return /*#__PURE__*/React.createElement("div", {
@@ -5753,17 +5783,7 @@ function App() {
     style: {
       paddingBottom: 'calc(76px + env(safe-area-inset-bottom,0px))'
     }
-  }, fbDaysLeft !== null && /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '12px 16px 0'
-    }
-  }, /*#__PURE__*/React.createElement(FbRulesBanner, {
-    daysLeft: fbDaysLeft,
-    onDismiss: () => {
-      localStorage.setItem('sensa_fb_dismiss', today());
-      setFbDaysLeft(null);
-    }
-  })), (data.inbox || []).length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, (data.inbox || []).length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '12px 16px 0'
     }
@@ -5778,6 +5798,7 @@ function App() {
   }), /*#__PURE__*/React.createElement(Toaster, null));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(ErrorBoundary, null, /*#__PURE__*/React.createElement(App, null)));
+
 window.__sensaLoaded=true;
 </script>
 </body>
